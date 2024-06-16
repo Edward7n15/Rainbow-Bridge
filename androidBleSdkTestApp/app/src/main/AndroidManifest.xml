@@ -27,13 +27,13 @@
     fine location permission on devices with API 30 (Android Q). -->
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"
-        android:maxSdkVersion="30" />
+        />
 
     <!-- The coarse location permission is needed, if fine location permission is requested. Request
      coarse location permission on devices with API 30 (Android Q). -->
     <uses-permission
         android:name="android.permission.ACCESS_COARSE_LOCATION"
-        android:maxSdkVersion="30" />
+        />
 
     <application
         android:allowBackup="true"

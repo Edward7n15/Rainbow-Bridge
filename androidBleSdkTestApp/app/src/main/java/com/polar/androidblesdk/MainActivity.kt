@@ -1,20 +1,29 @@
 package com.polar.androidblesdk
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.location.Location
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.util.Pair
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
 import com.google.android.material.snackbar.Snackbar
 import com.polar.sdk.api.PolarBleApi
 import com.polar.sdk.api.PolarBleApiCallback
@@ -28,11 +37,13 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
 import java.util.*
 
+
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private const val API_LOGGER_TAG = "API LOGGER"
         private const val PERMISSION_REQUEST_CODE = 1
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 2
     }
 
     // ATTENTION! Replace with the device ID from your device.
@@ -68,14 +79,14 @@ class MainActivity : AppCompatActivity() {
     private var sdkModeEnableDisposable: Disposable? = null
     private var recordingStartStopDisposable: Disposable? = null
     private var recordingStatusReadDisposable: Disposable? = null
-    private var listExercisesDisposable: Disposable? = null
-    private var fetchExerciseDisposable: Disposable? = null
-    private var removeExerciseDisposable: Disposable? = null
+//    private var listExercisesDisposable: Disposable? = null
+//    private var fetchExerciseDisposable: Disposable? = null
+//    private var removeExerciseDisposable: Disposable? = null
 
     private var sdkModeEnabledStatus = false
     private var deviceConnected = false
     private var bluetoothEnabled = false
-    private var exerciseEntries: MutableList<PolarExerciseEntry> = mutableListOf()
+//    private var exerciseEntries: MutableList<PolarExerciseEntry> = mutableListOf()
 
     private lateinit var broadcastButton: Button
     private lateinit var connectButton: Button
@@ -87,33 +98,38 @@ class MainActivity : AppCompatActivity() {
     private lateinit var gyrButton: Button
     private lateinit var magButton: Button
     private lateinit var ppgButton: Button
+    private lateinit var ppgValue: TextView
+    private lateinit var gpsValue: TextView
     private lateinit var ppiButton: Button
-    private lateinit var listExercisesButton: Button
-    private lateinit var fetchExerciseButton: Button
-    private lateinit var removeExerciseButton: Button
+//    private lateinit var listExercisesButton: Button
+//    private lateinit var fetchExerciseButton: Button
+//    private lateinit var removeExerciseButton: Button
     private lateinit var startH10RecordingButton: Button
     private lateinit var stopH10RecordingButton: Button
     private lateinit var readH10RecordingStatusButton: Button
-    private lateinit var setTimeButton: Button
-    private lateinit var getTimeButton: Button
+//    private lateinit var setTimeButton: Button
+//    private lateinit var getTimeButton: Button
     private lateinit var toggleSdkModeButton: Button
-    private lateinit var getDiskSpaceButton: Button
-    private lateinit var changeSdkModeLedAnimationStatusButton: Button
-    private lateinit var changePpiModeLedAnimationStatusButton: Button
-    private lateinit var doFactoryResetButton: Button
+//    private lateinit var getDiskSpaceButton: Button
+//    private lateinit var changeSdkModeLedAnimationStatusButton: Button
+//    private lateinit var changePpiModeLedAnimationStatusButton: Button
+//    private lateinit var doFactoryResetButton: Button
 
     //Verity Sense offline recording use
-    private lateinit var listRecordingsButton: Button
-    private lateinit var startRecordingButton: Button
-    private lateinit var stopRecordingButton: Button
-    private lateinit var downloadRecordingButton: Button
-    private lateinit var deleteRecordingButton: Button
-    private val entryCache: MutableMap<String, MutableList<PolarOfflineRecordingEntry>> = mutableMapOf()
+//    private lateinit var listRecordingsButton: Button
+//    private lateinit var startRecordingButton: Button
+//    private lateinit var stopRecordingButton: Button
+//    private lateinit var downloadRecordingButton: Button
+//    private lateinit var deleteRecordingButton: Button
+//    private val entryCache: MutableMap<String, MutableList<PolarOfflineRecordingEntry>> = mutableMapOf()
 
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_edited)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         Log.d(TAG, "version: " + PolarBleApiDefaultImpl.versionInfo())
         broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
@@ -125,27 +141,29 @@ class MainActivity : AppCompatActivity() {
 //        gyrButton = findViewById(R.id.gyr_button)
 //        magButton = findViewById(R.id.mag_button)
         ppgButton = findViewById(R.id.ohr_ppg_button)
+        ppgValue = findViewById(R.id.ppg_value)
+        gpsValue = findViewById(R.id.gps_value)
 //        ppiButton = findViewById(R.id.ohr_ppi_button)
-        listExercisesButton = findViewById(R.id.list_exercises)
-        fetchExerciseButton = findViewById(R.id.read_exercise)
-        removeExerciseButton = findViewById(R.id.remove_exercise)
+//        listExercisesButton = findViewById(R.id.list_exercises)
+//        fetchExerciseButton = findViewById(R.id.read_exercise)
+//        removeExerciseButton = findViewById(R.id.remove_exercise)
         startH10RecordingButton = findViewById(R.id.start_h10_recording)
         stopH10RecordingButton = findViewById(R.id.stop_h10_recording)
         readH10RecordingStatusButton = findViewById(R.id.h10_recording_status)
-        setTimeButton = findViewById(R.id.set_time)
-        getTimeButton = findViewById(R.id.get_time)
+//        setTimeButton = findViewById(R.id.set_time)
+//        getTimeButton = findViewById(R.id.get_time)
         toggleSdkModeButton = findViewById(R.id.toggle_SDK_mode)
-        getDiskSpaceButton = findViewById(R.id.get_disk_space)
-        changeSdkModeLedAnimationStatusButton = findViewById(R.id.change_sdk_mode_led_animation_status)
-        changePpiModeLedAnimationStatusButton = findViewById(R.id.change_ppi_mode_led_animation_status)
-        doFactoryResetButton = findViewById(R.id.do_factory_reset)
+//        getDiskSpaceButton = findViewById(R.id.get_disk_space)
+//        changeSdkModeLedAnimationStatusButton = findViewById(R.id.change_sdk_mode_led_animation_status)
+//        changePpiModeLedAnimationStatusButton = findViewById(R.id.change_ppi_mode_led_animation_status)
+//        doFactoryResetButton = findViewById(R.id.do_factory_reset)
 
         //Verity Sense recording buttons
-        listRecordingsButton = findViewById(R.id.list_recordings)
-        startRecordingButton = findViewById(R.id.start_recording)
-        stopRecordingButton = findViewById(R.id.stop_recording)
-        downloadRecordingButton = findViewById(R.id.download_recording)
-        deleteRecordingButton = findViewById(R.id.delete_recording)
+//        listRecordingsButton = findViewById(R.id.list_recordings)
+//        startRecordingButton = findViewById(R.id.start_recording)
+//        stopRecordingButton = findViewById(R.id.stop_recording)
+//        downloadRecordingButton = findViewById(R.id.download_recording)
+//        deleteRecordingButton = findViewById(R.id.delete_recording)
 
         api.setPolarFilter(false)
 
@@ -153,6 +171,13 @@ class MainActivity : AppCompatActivity() {
         val enableSdkLogs = false
         if(enableSdkLogs) {
             api.setApiLogger { s: String -> Log.d(API_LOGGER_TAG, s) }
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+        }
+        else {
+            startLocationUpdates()
         }
 
         api.setApiCallback(object : PolarBleApiCallback() {
@@ -430,6 +455,10 @@ class MainActivity : AppCompatActivity() {
                                 if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
                                     for (data in polarPpgData.samples) {
                                         Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
+                                        runOnUiThread {
+                                            ppgValue.text =
+                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
+                                        }
                                     }
                                 }
                             },
@@ -445,6 +474,8 @@ class MainActivity : AppCompatActivity() {
                 ppgDisposable?.dispose()
             }
         }
+
+
 
 //        ppiButton.setOnClickListener {
 //            val isDisposed = ppiDisposable?.isDisposed ?: true
@@ -471,99 +502,99 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-        listExercisesButton.setOnClickListener {
-            val isDisposed = listExercisesDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                exerciseEntries.clear()
-                listExercisesDisposable = api.listExercises(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarExerciseEntry: PolarExerciseEntry ->
-                            Log.d(TAG, "next: ${polarExerciseEntry.date} path: ${polarExerciseEntry.path} id: ${polarExerciseEntry.identifier}")
-                            exerciseEntries.add(polarExerciseEntry)
-                        },
-                        { error: Throwable ->
-                            val errorDescription = "Failed to list exercises. Reason: $error"
-                            Log.w(TAG, errorDescription)
-                            showSnackbar(errorDescription)
-                        },
-                        {
-                            val completedOk = "Exercise listing completed. Listed ${exerciseEntries.count()} exercises on device $deviceId."
-                            Log.d(TAG, completedOk)
-                            showSnackbar(completedOk)
-                        }
-                    )
-            } else {
-                Log.d(TAG, "Listing of exercise entries is in progress at the moment.")
-            }
-        }
-
-        fetchExerciseButton.setOnClickListener {
-            val isDisposed = fetchExerciseDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                if (exerciseEntries.isNotEmpty()) {
-                    toggleButtonDown(fetchExerciseButton, R.string.reading_exercise)
-                    // just for the example purpose read the entry which is first on the exerciseEntries list
-                    fetchExerciseDisposable = api.fetchExercise(deviceId, exerciseEntries.first())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .doFinally {
-                            toggleButtonUp(fetchExerciseButton, R.string.read_exercise)
-                        }
-                        .subscribe(
-                            { polarExerciseData: PolarExerciseData ->
-                                Log.d(TAG, "Exercise data count: ${polarExerciseData.hrSamples.size} samples: ${polarExerciseData.hrSamples}")
-                                var onComplete = "Exercise has ${polarExerciseData.hrSamples.size} hr samples.\n\n"
-                                if (polarExerciseData.hrSamples.size >= 3)
-                                    onComplete += "HR data {${polarExerciseData.hrSamples[0]}, ${polarExerciseData.hrSamples[1]}, ${polarExerciseData.hrSamples[2]} ...}"
-                                showDialog("Exercise data read", onComplete)
-                            },
-                            { error: Throwable ->
-                                val errorDescription = "Failed to read exercise. Reason: $error"
-                                Log.e(TAG, errorDescription)
-                                showSnackbar(errorDescription)
-                            }
-                        )
-                } else {
-                    val helpTitle = "Reading exercise is not possible"
-                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" " +
-                            "button to list exercises on device."
-                    showDialog(helpTitle, helpMessage)
-                }
-            } else {
-                Log.d(TAG, "Reading of exercise is in progress at the moment.")
-            }
-        }
-
-        removeExerciseButton.setOnClickListener {
-            val isDisposed = removeExerciseDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                if (exerciseEntries.isNotEmpty()) {
-                    // just for the example purpose remove the entry which is first on the exerciseEntries list
-                    val entry = exerciseEntries.first()
-                    removeExerciseDisposable = api.removeExercise(deviceId, entry)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                            {
-                                exerciseEntries.remove(entry)
-                                val exerciseRemovedOk = "Exercise with id:${entry.identifier} successfully removed"
-                                Log.d(TAG, exerciseRemovedOk)
-                                showSnackbar(exerciseRemovedOk)
-                            },
-                            { error: Throwable ->
-                                val exerciseRemoveFailed = "Exercise with id:${entry.identifier} remove failed: $error"
-                                Log.w(TAG, exerciseRemoveFailed)
-                                showSnackbar(exerciseRemoveFailed)
-                            }
-                        )
-                } else {
-                    val helpTitle = "Removing exercise is not possible"
-                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" button to list exercises on device"
-                    showDialog(helpTitle, helpMessage)
-                }
-            } else {
-                Log.d(TAG, "Removing of exercise is in progress at the moment.")
-            }
-        }
+//        listExercisesButton.setOnClickListener {
+//            val isDisposed = listExercisesDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                exerciseEntries.clear()
+//                listExercisesDisposable = api.listExercises(deviceId)
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(
+//                        { polarExerciseEntry: PolarExerciseEntry ->
+//                            Log.d(TAG, "next: ${polarExerciseEntry.date} path: ${polarExerciseEntry.path} id: ${polarExerciseEntry.identifier}")
+//                            exerciseEntries.add(polarExerciseEntry)
+//                        },
+//                        { error: Throwable ->
+//                            val errorDescription = "Failed to list exercises. Reason: $error"
+//                            Log.w(TAG, errorDescription)
+//                            showSnackbar(errorDescription)
+//                        },
+//                        {
+//                            val completedOk = "Exercise listing completed. Listed ${exerciseEntries.count()} exercises on device $deviceId."
+//                            Log.d(TAG, completedOk)
+//                            showSnackbar(completedOk)
+//                        }
+//                    )
+//            } else {
+//                Log.d(TAG, "Listing of exercise entries is in progress at the moment.")
+//            }
+//        }
+//
+//        fetchExerciseButton.setOnClickListener {
+//            val isDisposed = fetchExerciseDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                if (exerciseEntries.isNotEmpty()) {
+//                    toggleButtonDown(fetchExerciseButton, R.string.reading_exercise)
+//                    // just for the example purpose read the entry which is first on the exerciseEntries list
+//                    fetchExerciseDisposable = api.fetchExercise(deviceId, exerciseEntries.first())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .doFinally {
+//                            toggleButtonUp(fetchExerciseButton, R.string.read_exercise)
+//                        }
+//                        .subscribe(
+//                            { polarExerciseData: PolarExerciseData ->
+//                                Log.d(TAG, "Exercise data count: ${polarExerciseData.hrSamples.size} samples: ${polarExerciseData.hrSamples}")
+//                                var onComplete = "Exercise has ${polarExerciseData.hrSamples.size} hr samples.\n\n"
+//                                if (polarExerciseData.hrSamples.size >= 3)
+//                                    onComplete += "HR data {${polarExerciseData.hrSamples[0]}, ${polarExerciseData.hrSamples[1]}, ${polarExerciseData.hrSamples[2]} ...}"
+//                                showDialog("Exercise data read", onComplete)
+//                            },
+//                            { error: Throwable ->
+//                                val errorDescription = "Failed to read exercise. Reason: $error"
+//                                Log.e(TAG, errorDescription)
+//                                showSnackbar(errorDescription)
+//                            }
+//                        )
+//                } else {
+//                    val helpTitle = "Reading exercise is not possible"
+//                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" " +
+//                            "button to list exercises on device."
+//                    showDialog(helpTitle, helpMessage)
+//                }
+//            } else {
+//                Log.d(TAG, "Reading of exercise is in progress at the moment.")
+//            }
+//        }
+//
+//        removeExerciseButton.setOnClickListener {
+//            val isDisposed = removeExerciseDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                if (exerciseEntries.isNotEmpty()) {
+//                    // just for the example purpose remove the entry which is first on the exerciseEntries list
+//                    val entry = exerciseEntries.first()
+//                    removeExerciseDisposable = api.removeExercise(deviceId, entry)
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(
+//                            {
+//                                exerciseEntries.remove(entry)
+//                                val exerciseRemovedOk = "Exercise with id:${entry.identifier} successfully removed"
+//                                Log.d(TAG, exerciseRemovedOk)
+//                                showSnackbar(exerciseRemovedOk)
+//                            },
+//                            { error: Throwable ->
+//                                val exerciseRemoveFailed = "Exercise with id:${entry.identifier} remove failed: $error"
+//                                Log.w(TAG, exerciseRemoveFailed)
+//                                showSnackbar(exerciseRemoveFailed)
+//                            }
+//                        )
+//                } else {
+//                    val helpTitle = "Removing exercise is not possible"
+//                    val helpMessage = "Either device has no exercise entries or you haven't list them yet. Please, create an exercise or use the \"LIST EXERCISES\" button to list exercises on device"
+//                    showDialog(helpTitle, helpMessage)
+//                }
+//            } else {
+//                Log.d(TAG, "Removing of exercise is in progress at the moment.")
+//            }
+//        }
 
         startH10RecordingButton.setOnClickListener {
             val isDisposed = recordingStartStopDisposable?.isDisposed ?: true
@@ -652,166 +683,166 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        setTimeButton.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            calendar.time = Date()
-            api.setLocalTime(deviceId, calendar)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        val timeSetString = "time ${calendar.time} set to device"
-                        Log.d(TAG, timeSetString)
-                        showToast(timeSetString)
-                    },
-                    { error: Throwable -> Log.e(TAG, "set time failed: $error") }
-                )
-        }
+//        setTimeButton.setOnClickListener {
+//            val calendar = Calendar.getInstance()
+//            calendar.time = Date()
+//            api.setLocalTime(deviceId, calendar)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    {
+//                        val timeSetString = "time ${calendar.time} set to device"
+//                        Log.d(TAG, timeSetString)
+//                        showToast(timeSetString)
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "set time failed: $error") }
+//                )
+//        }
+//
+//        getTimeButton.setOnClickListener {
+//            api.getLocalTime(deviceId)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    { calendar ->
+//                        val timeGetString = "${calendar.time} read from the device"
+//                        Log.d(TAG, timeGetString)
+//                        showToast(timeGetString)
+//
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "get time failed: $error") }
+//                )
+//        }
 
-        getTimeButton.setOnClickListener {
-            api.getLocalTime(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { calendar ->
-                        val timeGetString = "${calendar.time} read from the device"
-                        Log.d(TAG, timeGetString)
-                        showToast(timeGetString)
 
-                    },
-                    { error: Throwable -> Log.e(TAG, "get time failed: $error") }
-                )
-        }
-
-
-        listRecordingsButton.setOnClickListener {
-            api.listOfflineRecordings(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    entryCache[deviceId] = mutableListOf()
-                }
-                .map {
-                    entryCache[deviceId]?.add(it)
-                    it
-                }
-                .subscribe(
-                    { polarOfflineRecordingEntry: PolarOfflineRecordingEntry ->
-                        Log.d(
-                            TAG,
-                            "next: ${polarOfflineRecordingEntry.date} path: ${polarOfflineRecordingEntry.path} size: ${polarOfflineRecordingEntry.size}"
-                        )
-                    },
-                    { error: Throwable -> Log.e(TAG, "Failed to list recordings: $error") },
-                    { Log.d(TAG, "list recordings complete") }
-                )
-        }
-
-        startRecordingButton.setOnClickListener {
-            //Example of starting ACC offline recording
-            Log.d(TAG, "Starts ACC recording")
-            val settings: MutableMap<PolarSensorSetting.SettingType, Int> = mutableMapOf()
-            settings[PolarSensorSetting.SettingType.SAMPLE_RATE] = 52
-            settings[PolarSensorSetting.SettingType.RESOLUTION] = 16
-            settings[PolarSensorSetting.SettingType.RANGE] = 8
-            settings[PolarSensorSetting.SettingType.CHANNELS] = 3
-            //Using a secret key managed by your own.
-            //  You can use a different key to each start recording calls.
-            //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
-            val yourSecret = PolarRecordingSecret(
-                byteArrayOf(
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-                )
-            )
-            api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()), yourSecret)
-                //Without a secret key
-                //api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()))
-                .subscribe(
-                    { Log.d(TAG, "start offline recording completed") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
-        }
-
-        stopRecordingButton.setOnClickListener {
-            //Example of stopping ACC offline recording
-            Log.d(TAG, "Stops ACC recording")
-            api.stopOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                .subscribe(
-                    { Log.d(TAG, "stop offline recording completed") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
-        }
-
-        downloadRecordingButton.setOnClickListener {
-            //Example of one offline recording download
-            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
-            Log.d(TAG, "Searching to recording to download... ")
-            //Get first entry for testing download
-            val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
-            offlineRecEntry?.let { offlineEntry ->
-                try {
-                    //Using a secret key managed by your own.
-                    //  You can use a different key to each start recording calls.
-                    //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
-                    val yourSecret = PolarRecordingSecret(
-                        byteArrayOf(
-                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
-                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-                        )
-                    )
-                    api.getOfflineRecord(deviceId, offlineEntry, yourSecret)
-                        //Not using a secret key
-                        //api.getOfflineRecord(deviceId, offlineEntry)
-                        .subscribe(
-                            {
-                                Log.d(TAG, "Recording ${offlineEntry.path} downloaded. Size: ${offlineEntry.size}")
-                                when (it) {
-                                    is PolarOfflineRecordingData.AccOfflineRecording -> {
-                                        Log.d(TAG, "ACC Recording started at ${it.startTime}")
-                                        for (sample in it.data.samples) {
-                                            Log.d(TAG, "ACC data: time: ${sample.timeStamp} X: ${sample.x} Y: ${sample.y} Z: ${sample.z}")
-                                        }
-                                    }
-//                      is PolarOfflineRecordingData.GyroOfflineRecording -> { }
-//                      is PolarOfflineRecordingData.MagOfflineRecording -> { }
-//                      ...
-                                    else -> {
-                                        Log.d(TAG, "Recording type is not yet implemented")
-                                    }
-                                }
-                            },
-                            { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                        )
-                } catch (e: Exception) {
-                    Log.e(TAG, "Get offline recording fetch failed on entry ...", e)
-                }
-            }
-        }
-
-        deleteRecordingButton.setOnClickListener {
-            //Example of one offline recording deletion
-            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
-            Log.d(TAG, "Searching to recording to delete... ")
-            //Get first entry for testing deletion
-            val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
-            offlineRecEntry?.let { offlineEntry ->
-                try {
-                    api.removeOfflineRecord(deviceId, offlineEntry)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(
-                            {
-                                Log.d(TAG, "Recording file deleted")
-                            },
-                            { error ->
-                                val errorString = "Recording file deletion failed: $error"
-                                showToast(errorString)
-                                Log.e(TAG, errorString)
-                            }
-                        )
-
-                } catch (e: Exception) {
-                    Log.e(TAG, "Delete offline recording failed on entry ...", e)
-                }
-            }
-        }
+//        listRecordingsButton.setOnClickListener {
+//            api.listOfflineRecordings(deviceId)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .doOnSubscribe {
+//                    entryCache[deviceId] = mutableListOf()
+//                }
+//                .map {
+//                    entryCache[deviceId]?.add(it)
+//                    it
+//                }
+//                .subscribe(
+//                    { polarOfflineRecordingEntry: PolarOfflineRecordingEntry ->
+//                        Log.d(
+//                            TAG,
+//                            "next: ${polarOfflineRecordingEntry.date} path: ${polarOfflineRecordingEntry.path} size: ${polarOfflineRecordingEntry.size}"
+//                        )
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "Failed to list recordings: $error") },
+//                    { Log.d(TAG, "list recordings complete") }
+//                )
+//        }
+//
+//        startRecordingButton.setOnClickListener {
+//            //Example of starting ACC offline recording
+//            Log.d(TAG, "Starts ACC recording")
+//            val settings: MutableMap<PolarSensorSetting.SettingType, Int> = mutableMapOf()
+//            settings[PolarSensorSetting.SettingType.SAMPLE_RATE] = 52
+//            settings[PolarSensorSetting.SettingType.RESOLUTION] = 16
+//            settings[PolarSensorSetting.SettingType.RANGE] = 8
+//            settings[PolarSensorSetting.SettingType.CHANNELS] = 3
+//            //Using a secret key managed by your own.
+//            //  You can use a different key to each start recording calls.
+//            //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
+//            val yourSecret = PolarRecordingSecret(
+//                byteArrayOf(
+//                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+//                    0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+//                )
+//            )
+//            api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()), yourSecret)
+//                //Without a secret key
+//                //api.startOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC, PolarSensorSetting(settings.toMap()))
+//                .subscribe(
+//                    { Log.d(TAG, "start offline recording completed") },
+//                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
+//                )
+//        }
+//
+//        stopRecordingButton.setOnClickListener {
+//            //Example of stopping ACC offline recording
+//            Log.d(TAG, "Stops ACC recording")
+//            api.stopOfflineRecording(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+//                .subscribe(
+//                    { Log.d(TAG, "stop offline recording completed") },
+//                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
+//                )
+//        }
+//
+//        downloadRecordingButton.setOnClickListener {
+//            //Example of one offline recording download
+//            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
+//            Log.d(TAG, "Searching to recording to download... ")
+//            //Get first entry for testing download
+//            val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
+//            offlineRecEntry?.let { offlineEntry ->
+//                try {
+//                    //Using a secret key managed by your own.
+//                    //  You can use a different key to each start recording calls.
+//                    //  When using key at start recording, it is also needed for the recording download, otherwise could not be decrypted
+//                    val yourSecret = PolarRecordingSecret(
+//                        byteArrayOf(
+//                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09,
+//                            0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+//                        )
+//                    )
+//                    api.getOfflineRecord(deviceId, offlineEntry, yourSecret)
+//                        //Not using a secret key
+//                        //api.getOfflineRecord(deviceId, offlineEntry)
+//                        .subscribe(
+//                            {
+//                                Log.d(TAG, "Recording ${offlineEntry.path} downloaded. Size: ${offlineEntry.size}")
+//                                when (it) {
+//                                    is PolarOfflineRecordingData.AccOfflineRecording -> {
+//                                        Log.d(TAG, "ACC Recording started at ${it.startTime}")
+//                                        for (sample in it.data.samples) {
+//                                            Log.d(TAG, "ACC data: time: ${sample.timeStamp} X: ${sample.x} Y: ${sample.y} Z: ${sample.z}")
+//                                        }
+//                                    }
+////                      is PolarOfflineRecordingData.GyroOfflineRecording -> { }
+////                      is PolarOfflineRecordingData.MagOfflineRecording -> { }
+////                      ...
+//                                    else -> {
+//                                        Log.d(TAG, "Recording type is not yet implemented")
+//                                    }
+//                                }
+//                            },
+//                            { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
+//                        )
+//                } catch (e: Exception) {
+//                    Log.e(TAG, "Get offline recording fetch failed on entry ...", e)
+//                }
+//            }
+//        }
+//
+//        deleteRecordingButton.setOnClickListener {
+//            //Example of one offline recording deletion
+//            //NOTE: For this example you need to click on listRecordingsButton to have files entry (entryCache) up to date
+//            Log.d(TAG, "Searching to recording to delete... ")
+//            //Get first entry for testing deletion
+//            val offlineRecEntry = entryCache[deviceId]?.firstOrNull()
+//            offlineRecEntry?.let { offlineEntry ->
+//                try {
+//                    api.removeOfflineRecord(deviceId, offlineEntry)
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(
+//                            {
+//                                Log.d(TAG, "Recording file deleted")
+//                            },
+//                            { error ->
+//                                val errorString = "Recording file deletion failed: $error"
+//                                showToast(errorString)
+//                                Log.e(TAG, errorString)
+//                            }
+//                        )
+//
+//                } catch (e: Exception) {
+//                    Log.e(TAG, "Delete offline recording failed on entry ...", e)
+//                }
+//            }
+//        }
 
         toggleSdkModeButton.setOnClickListener {
             toggleSdkModeButton.isEnabled = false
@@ -856,69 +887,69 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        getDiskSpaceButton.setOnClickListener {
-            api.getDiskSpace(deviceId)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { diskSpace ->
-                        Log.d(TAG, "disk space: $diskSpace")
-                        showToast("Disk space left: ${diskSpace.freeSpace}/${diskSpace.totalSpace} Bytes")
-                    },
-                    { error: Throwable -> Log.e(TAG, "get disk space failed: $error") }
-                )
-        }
-
-        var enableSdkModelLedAnimation = false
-        var enablePpiModeLedAnimation = false
-        changeSdkModeLedAnimationStatusButton.setOnClickListener {
-            api.setLedConfig(deviceId, LedConfig(
-                sdkModeLedEnabled = enableSdkModelLedAnimation,
-                ppiModeLedEnabled = !enablePpiModeLedAnimation))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "SdkModeledAnimationEnabled set to $enableSdkModelLedAnimation")
-                        showToast("SdkModeLedAnimationEnabled set to $enableSdkModelLedAnimation")
-                        changeSdkModeLedAnimationStatusButton.text =
-                            if (enableSdkModelLedAnimation) getString(R.string.disable_sdk_mode_led_animation) else getString(
-                                R.string.enable_sdk_mode_led_animation
-                            )
-                        enableSdkModelLedAnimation = !enableSdkModelLedAnimation
-                    },
-                    { error: Throwable -> Log.e(TAG, "changeSdkModeLedAnimationStatus failed: $error") }
-                )
-        }
-
-        changePpiModeLedAnimationStatusButton.setOnClickListener {
-            api.setLedConfig(deviceId, LedConfig(
-                sdkModeLedEnabled = !enableSdkModelLedAnimation,
-                ppiModeLedEnabled = enablePpiModeLedAnimation))
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
-                        showToast("PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
-                        changePpiModeLedAnimationStatusButton.text =
-                            if (enablePpiModeLedAnimation) getString(R.string.disable_ppi_mode_led_animation) else getString(
-                                R.string.enable_ppi_mode_led_animation
-                            )
-                        enablePpiModeLedAnimation = !enablePpiModeLedAnimation
-                    },
-                    { error: Throwable -> Log.e(TAG, "changePpiModeLedAnimationStatus failed: $error") }
-                )
-        }
-
-        doFactoryResetButton.setOnClickListener {
-            api.doFactoryReset(deviceId, preservePairingInformation = true)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    {
-                        Log.d(TAG, "send do factory reset to device")
-                        showToast("send do factory reset to device")
-                    },
-                    { error: Throwable -> Log.e(TAG, "doFactoryReset() failed: $error") }
-                )
-        }
+//        getDiskSpaceButton.setOnClickListener {
+//            api.getDiskSpace(deviceId)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    { diskSpace ->
+//                        Log.d(TAG, "disk space: $diskSpace")
+//                        showToast("Disk space left: ${diskSpace.freeSpace}/${diskSpace.totalSpace} Bytes")
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "get disk space failed: $error") }
+//                )
+//        }
+//
+//        var enableSdkModelLedAnimation = false
+//        var enablePpiModeLedAnimation = false
+//        changeSdkModeLedAnimationStatusButton.setOnClickListener {
+//            api.setLedConfig(deviceId, LedConfig(
+//                sdkModeLedEnabled = enableSdkModelLedAnimation,
+//                ppiModeLedEnabled = !enablePpiModeLedAnimation))
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    {
+//                        Log.d(TAG, "SdkModeledAnimationEnabled set to $enableSdkModelLedAnimation")
+//                        showToast("SdkModeLedAnimationEnabled set to $enableSdkModelLedAnimation")
+//                        changeSdkModeLedAnimationStatusButton.text =
+//                            if (enableSdkModelLedAnimation) getString(R.string.disable_sdk_mode_led_animation) else getString(
+//                                R.string.enable_sdk_mode_led_animation
+//                            )
+//                        enableSdkModelLedAnimation = !enableSdkModelLedAnimation
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "changeSdkModeLedAnimationStatus failed: $error") }
+//                )
+//        }
+//
+//        changePpiModeLedAnimationStatusButton.setOnClickListener {
+//            api.setLedConfig(deviceId, LedConfig(
+//                sdkModeLedEnabled = !enableSdkModelLedAnimation,
+//                ppiModeLedEnabled = enablePpiModeLedAnimation))
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    {
+//                        Log.d(TAG, "PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
+//                        showToast("PpiModeLedAnimationEnabled set to $enablePpiModeLedAnimation")
+//                        changePpiModeLedAnimationStatusButton.text =
+//                            if (enablePpiModeLedAnimation) getString(R.string.disable_ppi_mode_led_animation) else getString(
+//                                R.string.enable_ppi_mode_led_animation
+//                            )
+//                        enablePpiModeLedAnimation = !enablePpiModeLedAnimation
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "changePpiModeLedAnimationStatus failed: $error") }
+//                )
+//        }
+//
+//        doFactoryResetButton.setOnClickListener {
+//            api.doFactoryReset(deviceId, preservePairingInformation = true)
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(
+//                    {
+//                        Log.d(TAG, "send do factory reset to device")
+//                        showToast("send do factory reset to device")
+//                    },
+//                    { error: Throwable -> Log.e(TAG, "doFactoryReset() failed: $error") }
+//                )
+//        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -942,6 +973,9 @@ class MainActivity : AppCompatActivity() {
                     return
                 }
             }
+//            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)){
+//                startLocationUpdates()
+//            }
             Log.d(TAG, "Needed permissions are granted")
             enableAllButtons()
         }
@@ -949,16 +983,41 @@ class MainActivity : AppCompatActivity() {
 
     public override fun onPause() {
         super.onPause()
+//        fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     public override fun onResume() {
         super.onResume()
         api.foregroundEntered()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
+            startLocationUpdates()
+        }
     }
 
     public override fun onDestroy() {
         super.onDestroy()
         api.shutDown()
+    }
+
+    private fun startLocationUpdates() {
+        val locationRequest = LocationRequest.create().apply{
+            interval = 1000
+            fastestInterval = 500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+
+        locationCallback = object: LocationCallback(){
+            override fun onLocationResult(locationResult: LocationResult) {
+                for (location in locationResult.locations){
+                    updateUI(location)
+                }
+            }
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
+    }
+
+    private fun updateUI(location: Location){
+        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
     }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
@@ -1049,22 +1108,22 @@ class MainActivity : AppCompatActivity() {
 //        magButton.isEnabled = false
         ppgButton.isEnabled = false
 //        ppiButton.isEnabled = false
-        listExercisesButton.isEnabled = false
-        fetchExerciseButton.isEnabled = false
-        removeExerciseButton.isEnabled = false
+//        listExercisesButton.isEnabled = false
+//        fetchExerciseButton.isEnabled = false
+//        removeExerciseButton.isEnabled = false
         startH10RecordingButton.isEnabled = false
         stopH10RecordingButton.isEnabled = false
         readH10RecordingStatusButton.isEnabled = false
-        setTimeButton.isEnabled = false
-        getTimeButton.isEnabled = false
+//        setTimeButton.isEnabled = false
+//        getTimeButton.isEnabled = false
         toggleSdkModeButton.isEnabled = false
-        getDiskSpaceButton.isEnabled = false
+//        getDiskSpaceButton.isEnabled = false
         //Verity Sense recording buttons
-        listRecordingsButton.isEnabled = false
-        startRecordingButton.isEnabled = false
-        stopRecordingButton.isEnabled = false
-        downloadRecordingButton.isEnabled = false
-        deleteRecordingButton.isEnabled = false
+//        listRecordingsButton.isEnabled = false
+//        startRecordingButton.isEnabled = false
+//        stopRecordingButton.isEnabled = false
+//        downloadRecordingButton.isEnabled = false
+//        deleteRecordingButton.isEnabled = false
     }
 
     private fun enableAllButtons() {
@@ -1078,22 +1137,22 @@ class MainActivity : AppCompatActivity() {
 //        magButton.isEnabled = true
         ppgButton.isEnabled = true
 //        ppiButton.isEnabled = true
-        listExercisesButton.isEnabled = true
-        fetchExerciseButton.isEnabled = true
-        removeExerciseButton.isEnabled = true
+//        listExercisesButton.isEnabled = true
+//        fetchExerciseButton.isEnabled = true
+//        removeExerciseButton.isEnabled = true
         startH10RecordingButton.isEnabled = true
         stopH10RecordingButton.isEnabled = true
         readH10RecordingStatusButton.isEnabled = true
-        setTimeButton.isEnabled = true
-        getTimeButton.isEnabled = true
+//        setTimeButton.isEnabled = true
+//        getTimeButton.isEnabled = true
         toggleSdkModeButton.isEnabled = true
-        getDiskSpaceButton.isEnabled = true
+//        getDiskSpaceButton.isEnabled = true
         //Verity Sense recording buttons
-        listRecordingsButton.isEnabled = true
-        startRecordingButton.isEnabled = true
-        stopRecordingButton.isEnabled = true
-        downloadRecordingButton.isEnabled = true
-        deleteRecordingButton.isEnabled = true
+//        listRecordingsButton.isEnabled = true
+//        startRecordingButton.isEnabled = true
+//        stopRecordingButton.isEnabled = true
+//        downloadRecordingButton.isEnabled = true
+//        deleteRecordingButton.isEnabled = true
     }
 
     private fun disposeAllStreams() {
