@@ -1001,8 +1001,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply{
-            interval = 1000
-            fastestInterval = 500
+            interval = 55
+            fastestInterval = 55
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
