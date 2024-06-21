@@ -38,6 +38,7 @@ import io.reactivex.rxjava3.disposables.Disposable
 import java.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import android.provider.Settings
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -127,6 +128,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationCallback: LocationCallback
 
     private val db = Firebase.firestore
+    private val deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+    private val userCollection = db.collection(deviceID)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -468,7 +471,7 @@ class MainActivity : AppCompatActivity() {
                                         var data = hashMapOf(
                                             "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
                                         )
-                                        db.collection("ppg")
+                                        userCollection
                                             .add(data)
                                             .addOnSuccessListener { Log.d(TAG, "ppg collected") }
                                             .addOnFailureListener { Log.d(TAG, "ppg not collected") }
@@ -1035,7 +1038,7 @@ class MainActivity : AppCompatActivity() {
             "lat" to location.latitude,
             "lon" to location.longitude
         )
-        db.collection("geo")
+        userCollection
             .add(loc)
             .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
             .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
