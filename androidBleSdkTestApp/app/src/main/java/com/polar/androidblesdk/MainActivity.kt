@@ -465,13 +465,13 @@ class MainActivity : AppCompatActivity() {
                                             ppgValue.text =
                                                 "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
                                         }
-                                        var data = hashMapOf(
-                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
-                                        )
-                                        db.collection("ppg")
-                                            .add(data)
-                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
-                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+//                                        var data = hashMapOf(
+//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
+//                                        )
+//                                        db.collection("ppg")
+//                                            .add(data)
+//                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
+//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
                                     }
                                 }
                             },
@@ -1014,8 +1014,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply{
-            interval = 5500
-            fastestInterval = 5500
+            interval = 550
+            fastestInterval = 550
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
@@ -1031,14 +1031,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(location: Location){
         gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
-        var loc = hashMapOf(
-            "lat" to location.latitude,
-            "lon" to location.longitude
-        )
-        db.collection("geo")
-            .add(loc)
-            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
-            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+//        var loc = hashMapOf(
+//            "lat" to location.latitude,
+//            "lon" to location.longitude
+//        )
+//        db.collection("geo")
+//            .add(loc)
+//            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
+//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
     }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
