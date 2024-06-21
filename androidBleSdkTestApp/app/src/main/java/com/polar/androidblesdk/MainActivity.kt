@@ -38,6 +38,7 @@ import io.reactivex.rxjava3.disposables.Disposable
 import java.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
+import android.provider.Settings
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -127,6 +128,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationCallback: LocationCallback
 
     private val db = Firebase.firestore
+    private val deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
+    private val userCollection = db.collection(deviceID)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -465,13 +468,14 @@ class MainActivity : AppCompatActivity() {
                                             ppgValue.text =
                                                 "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
                                         }
-//                                        var data = hashMapOf(
-//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
-//                                        )
-//                                        db.collection("ppg")
-//                                            .add(data)
-//                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
-//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+
+                                        var data = hashMapOf(
+                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
+                                        )
+                                        userCollection
+                                            .add(data)
+                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
+                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
                                     }
                                 }
                             },
@@ -1031,14 +1035,15 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(location: Location){
         gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
-//        var loc = hashMapOf(
-//            "lat" to location.latitude,
-//            "lon" to location.longitude
-//        )
-//        db.collection("geo")
-//            .add(loc)
-//            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
-//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+
+        var loc = hashMapOf(
+            "lat" to location.latitude,
+            "lon" to location.longitude
+        )
+        userCollection
+            .add(loc)
+            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
     }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
