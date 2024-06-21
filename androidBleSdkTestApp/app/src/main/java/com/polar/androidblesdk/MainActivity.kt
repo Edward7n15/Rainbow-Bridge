@@ -39,6 +39,7 @@ import java.util.*
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.firestore
 import android.provider.Settings
+import android.provider.Settings.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -128,8 +129,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var locationCallback: LocationCallback
 
     private val db = Firebase.firestore
-    private val deviceID = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
-    private val userCollection = db.collection(deviceID)
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -472,6 +472,8 @@ class MainActivity : AppCompatActivity() {
                                         var data = hashMapOf(
                                             "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
                                         )
+                                        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
+                                        val userCollection = db.collection(deviceID)
                                         userCollection
                                             .add(data)
                                             .addOnSuccessListener { Log.d(TAG, "ppg collected") }
@@ -1040,6 +1042,8 @@ class MainActivity : AppCompatActivity() {
             "lat" to location.latitude,
             "lon" to location.longitude
         )
+        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
+        val userCollection = db.collection(deviceID)
         userCollection
             .add(loc)
             .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
