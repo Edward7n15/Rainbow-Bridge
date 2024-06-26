@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ATTENTION! Replace with the device ID from your device.
-    private var deviceId = "BC15022D"
+    private var deviceId = "Unknown"
     private val api: PolarBleApi by lazy {
         // Notice all features are enabled
         PolarBleApiDefaultImpl.defaultImplementation(
@@ -127,6 +127,9 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    var recordGPS = false
+    private lateinit var latitude: String
+    private lateinit var longitude: String
 
     private val db = Firebase.firestore
 
@@ -462,18 +465,23 @@ class MainActivity : AppCompatActivity() {
                         .subscribe(
                             { polarPpgData: PolarPpgData ->
                                 if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
+                                    recordGPS = true
+                                    Log.d(recordGPS.toString(), "record GPS status")
                                     for (data in polarPpgData.samples) {
-                                        Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
+//                                        Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
                                         runOnUiThread {
                                             ppgValue.text =
                                                 "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
                                         }
 
                                         var data = hashMapOf(
-                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3
+                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
+                                            "lat" to latitude,
+                                            "lon" to longitude,
+                                            "timeStamp" to data.timeStamp,
                                         )
-                                        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
-                                        val userCollection = db.collection(deviceID)
+//                                        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
+                                        val userCollection = db.collection(deviceId)
                                         userCollection
                                             .add(data)
                                             .addOnSuccessListener { Log.d(TAG, "ppg collected") }
@@ -489,6 +497,8 @@ class MainActivity : AppCompatActivity() {
                         )
             } else {
                 toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+                recordGPS = false
+                Log.d(recordGPS.toString(), "record GPS status")
                 // NOTE dispose will stop streaming if it is "running"
                 ppgDisposable?.dispose()
             }
@@ -1037,17 +1047,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(location: Location){
         gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
+        // store the value here and keep updating it
+        // upload it to firebase when PPG button is clicked
+        longitude = (location.longitude).toString()
+        latitude = (location.latitude).toString()
 
-        var loc = hashMapOf(
-            "lat" to location.latitude,
-            "lon" to location.longitude
-        )
-        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
-        val userCollection = db.collection(deviceID)
-        userCollection
-            .add(loc)
-            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
-            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+//        var loc = hashMapOf(
+//            "lat" to location.latitude,
+//            "lon" to location.longitude
+//        )
+//        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
+//        val userCollection = db.collection(deviceId)
+//        if (recordGPS){
+//        userCollection
+//            .add(loc)
+//            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
+//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+//        }
     }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
