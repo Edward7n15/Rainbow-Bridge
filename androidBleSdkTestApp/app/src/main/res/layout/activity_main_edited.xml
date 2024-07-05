@@ -61,6 +61,12 @@
             android:text="@string/start_hr_stream" />
 
         <Button
+            android:id="@+id/acc_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_acc_stream" />
+
+        <Button
             android:id="@+id/ohr_ppg_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -80,6 +86,14 @@
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:background="#6a885f"
+            android:textColor="#fcf3f6"
+            android:text="@string/gps_value" />
+
+        <TextView
+            android:id="@+id/acc_value"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#6a889f"
             android:textColor="#fcf3f6"
             android:text="@string/gps_value" />
 

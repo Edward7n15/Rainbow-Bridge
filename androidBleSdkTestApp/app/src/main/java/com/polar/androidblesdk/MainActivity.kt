@@ -102,6 +102,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ppgButton: Button
     private lateinit var ppgValue: TextView
     private lateinit var gpsValue: TextView
+    private lateinit var accValue: TextView
     private lateinit var ppiButton: Button
     //    private lateinit var listExercisesButton: Button
 //    private lateinit var fetchExerciseButton: Button
@@ -145,12 +146,13 @@ class MainActivity : AppCompatActivity() {
         scanButton = findViewById(R.id.scan_button)
         hrButton = findViewById(R.id.hr_button)
 //        ecgButton = findViewById(R.id.ecg_button)
-//        accButton = findViewById(R.id.acc_button)
+        accButton = findViewById(R.id.acc_button)
 //        gyrButton = findViewById(R.id.gyr_button)
 //        magButton = findViewById(R.id.mag_button)
         ppgButton = findViewById(R.id.ohr_ppg_button)
         ppgValue = findViewById(R.id.ppg_value)
         gpsValue = findViewById(R.id.gps_value)
+        accValue = findViewById(R.id.acc_value)
 //        ppiButton = findViewById(R.id.ohr_ppi_button)
 //        listExercisesButton = findViewById(R.id.list_exercises)
 //        fetchExerciseButton = findViewById(R.id.read_exercise)
@@ -364,36 +366,38 @@ class MainActivity : AppCompatActivity() {
 //            }
 //        }
 
-//        accButton.setOnClickListener {
-//            val isDisposed = accDisposable?.isDisposed ?: true
-//            if (isDisposed) {
-//                toggleButtonDown(accButton, R.string.stop_acc_stream)
-//                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-//                    .flatMap { settings: PolarSensorSetting ->
-//                        api.startAccStreaming(deviceId, settings)
-//                    }
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(
-//                        { polarAccelerometerData: PolarAccelerometerData ->
-//                            for (data in polarAccelerometerData.samples) {
-//                                Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
-//                            }
-//                        },
-//                        { error: Throwable ->
-//                            toggleButtonUp(accButton, R.string.start_acc_stream)
-//                            Log.e(TAG, "ACC stream failed. Reason $error")
-//                        },
-//                        {
-//                            showToast("ACC stream complete")
-//                            Log.d(TAG, "ACC stream complete")
-//                        }
-//                    )
-//            } else {
-//                toggleButtonUp(accButton, R.string.start_acc_stream)
-//                // NOTE dispose will stop streaming if it is "running"
-//                accDisposable?.dispose()
-//            }
-//        }
+        accButton.setOnClickListener {
+            val isDisposed = accDisposable?.isDisposed ?: true
+            if (isDisposed) {
+                toggleButtonDown(accButton, R.string.stop_acc_stream)
+                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+                    .flatMap { settings: PolarSensorSetting ->
+                        api.startAccStreaming(deviceId, settings)
+                    }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        { polarAccelerometerData: PolarAccelerometerData ->
+                            for (data in polarAccelerometerData.samples) {
+                                Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+                                accValue.text =
+                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
+                            }
+                        },
+                        { error: Throwable ->
+                            toggleButtonUp(accButton, R.string.start_acc_stream)
+                            Log.e(TAG, "ACC stream failed. Reason $error")
+                        },
+                        {
+                            showToast("ACC stream complete")
+                            Log.d(TAG, "ACC stream complete")
+                        }
+                    )
+            } else {
+                toggleButtonUp(accButton, R.string.start_acc_stream)
+                // NOTE dispose will stop streaming if it is "running"
+                accDisposable?.dispose()
+            }
+        }
 //
 //        gyrButton.setOnClickListener {
 //            val isDisposed = gyrDisposable?.isDisposed ?: true
@@ -1149,7 +1153,7 @@ class MainActivity : AppCompatActivity() {
         autoConnectButton.isEnabled = false
         scanButton.isEnabled = false
 //        ecgButton.isEnabled = false
-//        accButton.isEnabled = false
+        accButton.isEnabled = false
 //        gyrButton.isEnabled = false
 //        magButton.isEnabled = false
         ppgButton.isEnabled = false
@@ -1178,7 +1182,7 @@ class MainActivity : AppCompatActivity() {
         autoConnectButton.isEnabled = true
         scanButton.isEnabled = true
 //        ecgButton.isEnabled = true
-//        accButton.isEnabled = true
+        accButton.isEnabled = true
 //        gyrButton.isEnabled = true
 //        magButton.isEnabled = true
         ppgButton.isEnabled = true
@@ -1203,7 +1207,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun disposeAllStreams() {
 //        ecgDisposable?.dispose()
-//        accDisposable?.dispose()
+        accDisposable?.dispose()
 //        gyrDisposable?.dispose()
 //        magDisposable?.dispose()
         ppgDisposable?.dispose()
