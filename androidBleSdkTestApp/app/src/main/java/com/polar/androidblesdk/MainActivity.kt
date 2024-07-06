@@ -41,6 +41,7 @@ import com.google.firebase.firestore.firestore
 import android.provider.Settings
 import android.provider.Settings.*
 
+
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 2
     }
 
+    private lateinit var polarTimestamp: String
     // ATTENTION! Replace with the device ID from your device.
     private var deviceId = "Unknown"
     private val api: PolarBleApi by lazy {
@@ -128,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    var recordGPS = false
+    var uploading = false
     private lateinit var latitude: String
     private lateinit var longitude: String
 
@@ -378,9 +380,30 @@ class MainActivity : AppCompatActivity() {
                     .subscribe(
                         { polarAccelerometerData: PolarAccelerometerData ->
                             for (data in polarAccelerometerData.samples) {
-                                Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
+//                                Log.d(TAG, "ACC    x: ${data.x} y: ${data.y} z: ${data.z} timeStamp: ${data.timeStamp}")
                                 accValue.text =
                                     "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
+
+                                if (uploading) {
+                                    var hashedACC = hashMapOf(
+                                        "x" to data.x,
+                                        "y" to data.y,
+                                        "z" to data.z,
+                                        "timeStamp" to data.timeStamp,
+                                    )
+
+                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
+                                        accCollection.document(data.timeStamp.toString())
+                                            .set(hashedACC)
+                                            //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
+                                            .addOnFailureListener { e ->
+                                                Log.w(
+                                                    TAG,
+                                                    "Error adding document",
+                                                    e
+                                                )
+                                            }
+                                }
                             }
                         },
                         { error: Throwable ->
@@ -469,8 +492,8 @@ class MainActivity : AppCompatActivity() {
                         .subscribe(
                             { polarPpgData: PolarPpgData ->
                                 if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
-                                    recordGPS = true
-                                    Log.d(recordGPS.toString(), "record GPS status")
+                                    uploading = true
+                                    Log.d(uploading.toString(), "record GPS status")
                                     for (data in polarPpgData.samples) {
 //                                        Log.d(TAG, "PPG    ppg0: ${data.channelSamples[0]} ppg1: ${data.channelSamples[1]} ppg2: ${data.channelSamples[2]} ambient: ${data.channelSamples[3]} timeStamp: ${data.timeStamp}")
                                         runOnUiThread {
@@ -478,17 +501,21 @@ class MainActivity : AppCompatActivity() {
                                                 "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
                                         }
 
-                                        var data = hashMapOf(
+                                        polarTimestamp = data.timeStamp.toString()
+                                        // we might want to normalize the ppg values
+                                        var hashedPPG = hashMapOf(
                                             "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-                                            "lat" to latitude,
-                                            "lon" to longitude,
+                                            "ppg0" to data.channelSamples[0],
+                                            "ppg1" to data.channelSamples[1],
+                                            "ppg2" to data.channelSamples[2],
+//                                            "ambient" to data.channelSamples[3],
                                             "timeStamp" to data.timeStamp,
                                         )
 //                                        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
-                                        val userCollection = db.collection(deviceId)
-                                        userCollection
-                                            .add(data)
-                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
+                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
+                                        ppgCollection.document(data.timeStamp.toString())
+                                            .set(hashedPPG)
+//                                            .addOnSuccessListener { Log.d(TAG, "ppg collected") }
                                             .addOnFailureListener { Log.d(TAG, "ppg not collected") }
                                     }
                                 }
@@ -501,8 +528,10 @@ class MainActivity : AppCompatActivity() {
                         )
             } else {
                 toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                recordGPS = false
-                Log.d(recordGPS.toString(), "record GPS status")
+                if (uploading) {
+                    uploading = false
+                }
+                Log.d(uploading.toString(), "upload status")
                 // NOTE dispose will stop streaming if it is "running"
                 ppgDisposable?.dispose()
             }
@@ -1056,18 +1085,18 @@ class MainActivity : AppCompatActivity() {
         longitude = (location.longitude).toString()
         latitude = (location.latitude).toString()
 
-//        var loc = hashMapOf(
-//            "lat" to location.latitude,
-//            "lon" to location.longitude
-//        )
+        if (uploading){
+        var hashedLocation = hashMapOf(
+            "lat" to location.latitude,
+            "lon" to location.longitude
+        )
 //        val deviceID = Secure.getString(this.contentResolver,Secure.ANDROID_ID)
-//        val userCollection = db.collection(deviceId)
-//        if (recordGPS){
-//        userCollection
-//            .add(loc)
-//            .addOnSuccessListener { DocumentReference -> Log.d(TAG, "DocumentSnapshot added with ID: ${DocumentReference.id}") }
-//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
-//        }
+        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
+        gpsCollection.document(polarTimestamp)
+            .set(hashedLocation)
+//            .addOnSuccessListener { Log.d(TAG, "GPS collected") }
+            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+        }
     }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
