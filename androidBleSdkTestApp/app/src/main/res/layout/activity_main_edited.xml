@@ -55,12 +55,6 @@
             android:background="@android:color/white" />
 
         <Button
-            android:id="@+id/hr_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/start_hr_stream" />
-
-        <Button
             android:id="@+id/acc_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -102,48 +96,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/enable_sdk_mode" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="2dp"
-            android:background="@android:color/white" />
-
-        <Button
-            android:id="@+id/start_h10_recording"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/start_h10_recording" />
-
-        <Button
-            android:id="@+id/stop_h10_recording"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/stop_h10_recording" />
-
-        <Button
-            android:id="@+id/h10_recording_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/h10_recording_status" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="10dp"
-            android:background="@android:color/white" />
-
-        <Button
-            android:id="@+id/do_factory_reset"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/do_factory_reset" />
 
     </LinearLayout>
 </ScrollView>
