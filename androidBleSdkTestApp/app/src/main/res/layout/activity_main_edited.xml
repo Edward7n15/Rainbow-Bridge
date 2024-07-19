@@ -11,6 +11,66 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <ListView
+            android:id="@+id/devices_list"
+            android:layout_width="match_parent"
+            android:layout_height="269dp" />
+
+        <Button
+            android:id="@+id/prompt_ID_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="enter your device id" />
+
+        <Button
+            android:id="@+id/connect_button"
+            android:layout_width="match_parent"
+            android:layout_height="73dp"
+            android:text="@string/connect_to_device" />
+
+        <Button
+            android:id="@+id/auto_connect_button"
+            android:layout_width="match_parent"
+            android:layout_height="83dp"
+            android:backgroundTint="@color/specialColor"
+            android:text="@string/auto_connect_toggle" />
+
+        <Button
+            android:id="@+id/scan_button"
+            android:layout_width="match_parent"
+            android:layout_height="103dp"
+            android:text="@string/scan_devices" />
+
+        <Button
+            android:id="@+id/one_for_all_button"
+            android:layout_width="match_parent"
+            android:layout_height="112dp"
+            android:text="One for all" />
+
+        <TextView
+            android:id="@+id/ppg_value"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:background="#6ab84f"
+            android:text="@string/ppg_value"
+            android:textColor="#fcf3f6" />
+
+        <TextView
+            android:id="@+id/gps_value"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#6a885f"
+            android:text="@string/gps_value"
+            android:textColor="#fcf3f6" />
+
+        <TextView
+            android:id="@+id/acc_value"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:background="#6a889f"
+            android:text="@string/gps_value"
+            android:textColor="#fcf3f6" />
+
         <Button
             android:id="@+id/broadcast_button"
             android:layout_width="match_parent"
@@ -25,25 +85,6 @@
             android:layout_marginEnd="10dp"
             android:layout_marginBottom="2dp"
             android:background="@android:color/white" />
-
-        <Button
-            android:id="@+id/connect_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/connect_to_device" />
-
-        <Button
-            android:id="@+id/auto_connect_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/specialColor"
-            android:text="@string/auto_connect_toggle" />
-
-        <Button
-            android:id="@+id/scan_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/scan_devices" />
 
         <View
             android:layout_width="match_parent"
@@ -66,30 +107,6 @@
             android:layout_height="wrap_content"
             android:backgroundTint="@color/specialColor"
             android:text="@string/start_ppg_stream" />
-
-        <TextView
-            android:id="@+id/ppg_value"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:background="#6ab84f"
-            android:textColor="#fcf3f6"
-            android:text="@string/ppg_value" />
-
-        <TextView
-            android:id="@+id/gps_value"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="#6a885f"
-            android:textColor="#fcf3f6"
-            android:text="@string/gps_value" />
-
-        <TextView
-            android:id="@+id/acc_value"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="#6a889f"
-            android:textColor="#fcf3f6"
-            android:text="@string/gps_value" />
 
         <Button
             android:id="@+id/toggle_SDK_mode"
