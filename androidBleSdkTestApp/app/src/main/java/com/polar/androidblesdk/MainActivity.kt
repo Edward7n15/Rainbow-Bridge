@@ -365,28 +365,28 @@ class MainActivity : AppCompatActivity() {
                                 polarTimestamp = data.timeStamp.toString()
 
                                 if (uploading) {
-                                    var hashedACC = hashMapOf(
-                                        "x" to data.x,
-                                        "y" to data.y,
-                                        "z" to data.z,
-                                        "timeStamp" to data.timeStamp,
-                                    )
+//                                    var hashedACC = hashMapOf(
+//                                        "x" to data.x,
+//                                        "y" to data.y,
+//                                        "z" to data.z,
+//                                        "timeStamp" to data.timeStamp,
+//                                    )
                                     verifyStoragePermissions(this)
                                     var accFileName = "ACC.txt"
                                     var accLine = "$polarTimestamp,${data.x},${data.y},${data.z}"
                                     createOrAppendFileInExternalStorage(accFileName, accLine)
 
-                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
-                                    accCollection.document(polarTimestamp)
-                                        .set(hashedACC)
-                                        //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
-                                        .addOnFailureListener { e ->
-                                            Log.w(
-                                                TAG,
-                                                "Error adding document",
-                                                e
-                                            )
-                                        }
+//                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
+//                                    accCollection.document(polarTimestamp)
+//                                        .set(hashedACC)
+//                                        //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
+//                                        .addOnFailureListener { e ->
+//                                            Log.w(
+//                                                TAG,
+//                                                "Error adding document",
+//                                                e
+//                                            )
+//                                        }
                                 }
                             }
                         },
@@ -429,17 +429,17 @@ class MainActivity : AppCompatActivity() {
                                         var ppgLine = "${data.timeStamp},${data.channelSamples[0]},${data.channelSamples[1]},${data.channelSamples[2]},${data.channelSamples[3]}"
                                         createOrAppendFileInExternalStorage(ppgFileName, ppgLine)
                                         // we might want to normalize the ppg values
-                                        var hashedPPG = hashMapOf(
-                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-                                            "ppg0" to data.channelSamples[0],
-                                            "ppg1" to data.channelSamples[1],
-                                            "ppg2" to data.channelSamples[2],
-                                            "timeStamp" to data.timeStamp,
-                                        )
-                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
-                                        ppgCollection.document(polarTimestamp)
-                                            .set(hashedPPG)
-                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+//                                        var hashedPPG = hashMapOf(
+//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
+//                                            "ppg0" to data.channelSamples[0],
+//                                            "ppg1" to data.channelSamples[1],
+//                                            "ppg2" to data.channelSamples[2],
+//                                            "timeStamp" to data.timeStamp,
+//                                        )
+//                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
+//                                        ppgCollection.document(polarTimestamp)
+//                                            .set(hashedPPG)
+//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
                                     }
                                 }
                             },
@@ -774,18 +774,18 @@ class MainActivity : AppCompatActivity() {
         latitude = (location.latitude).toString()
 
         if (uploading){
-        var hashedLocation = hashMapOf(
-            "lat" to location.latitude,
-            "lon" to location.longitude
-        )
+//        var hashedLocation = hashMapOf(
+//            "lat" to location.latitude,
+//            "lon" to location.longitude
+//        )
         var gpsFileName = "PGS.txt"
         var gpsLine = "${location.latitude},${location.longitude}"
         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
 
-        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
-        gpsCollection.document(polarTimestamp)
-            .set(hashedLocation)
-            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+//        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
+//        gpsCollection.document(polarTimestamp)
+//            .set(hashedLocation)
+//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
         }
     }
 
