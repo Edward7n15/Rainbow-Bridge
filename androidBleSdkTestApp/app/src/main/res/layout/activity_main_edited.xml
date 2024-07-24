@@ -28,9 +28,15 @@
         <Button
             android:id="@+id/one_for_all_button"
             android:layout_width="match_parent"
-            android:layout_height="296dp"
-            android:textSize="28sp"
-            android:text="Start" />
+            android:layout_height="204dp"
+            android:text="Start"
+            android:textSize="28sp" />
+
+        <Button
+            android:id="@+id/upload_button"
+            android:layout_width="match_parent"
+            android:layout_height="81dp"
+            android:text="Upload" />
 
         <ListView
             android:id="@+id/devices_list"

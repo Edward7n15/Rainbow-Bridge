@@ -51,9 +51,24 @@ import android.widget.EditText
 import android.widget.ListView
 import android.widget.ScrollView
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+//import com.google.android.gms.auth.api.signin.GoogleSignIn
+//import com.google.android.gms.auth.api.signin.GoogleSignInClient
+//import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+//import com.google.android.gms.common.api.Scope
+//import com.google.android.gms.drive.Drive
+//import com.google.android.gms.drive.DriveClient
+//import com.google.android.gms.drive.DriveContents
+//import com.google.android.gms.drive.DriveResourceClient
+//import com.google.android.gms.drive.MetadataChangeSet
+//import com.google.android.gms.drive.DriveScopes
+//import android.content.Intent
+//import java.io.FileInputStream
+
 
 
 class MainActivity : AppCompatActivity() {
@@ -102,9 +117,20 @@ class MainActivity : AppCompatActivity() {
     private var recordingStartStopDisposable: Disposable? = null
     private var recordingStatusReadDisposable: Disposable? = null
 
+    private var uploadButtonUp: Boolean = true
+    private var ofaButtonUp: Boolean = true
+
     private var sdkModeEnabledStatus = false
     private var deviceConnected = false
     private var bluetoothEnabled = false
+
+//    val googleSignInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//        .requestEmail()
+//        .requestScopes(Scope(DriveScopes.DRIVE_FILE))
+//        .build()
+
+//    val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
+
 
     private lateinit var broadcastButton: Button
     private lateinit var connectButton: Button
@@ -127,6 +153,7 @@ class MainActivity : AppCompatActivity() {
     //Verity Sense offline recording use
     private lateinit var ofaButton: Button
     private lateinit var promptID: Button
+    private lateinit var uploadButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -153,6 +180,7 @@ class MainActivity : AppCompatActivity() {
         ofaButton = findViewById(R.id.one_for_all_button)
         promptID = findViewById(R.id.prompt_ID_button)
         deviceId = getData(this, "currentID", "unknown")
+        uploadButton = findViewById(R.id.upload_button)
 
         broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
@@ -264,6 +292,21 @@ class MainActivity : AppCompatActivity() {
             dialog.show()
         }
 
+        uploadButton.setOnClickListener{
+            if (uploadButtonUp){
+                showToast("going down")
+                uploadButtonUp = false
+                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryDarkColor))
+                // resumable upload PPG.txt to google drive
+
+            }
+            else{
+                showToast("going up")
+                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
+                uploadButtonUp = true
+            }
+        }
+
         broadcastButton.setOnClickListener {
             if (!this::broadcastDisposable.isInitialized || broadcastDisposable.isDisposed) {
                 toggleButtonDown(broadcastButton, R.string.listening_broadcast)
@@ -348,6 +391,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         ofaButton.setOnClickListener{
+            if (ofaButtonUp){
+                ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryDarkColor))
+                ofaButtonUp = false
+                ofaButton.text = "end"
+            }
+            else{
+                ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
+                ofaButton.text = "start"
+                ofaButtonUp = true
+            }
             val isDisposed = accDisposable?.isDisposed ?: true
             if (isDisposed) {
                 toggleButtonDown(accButton, R.string.stop_acc_stream)
