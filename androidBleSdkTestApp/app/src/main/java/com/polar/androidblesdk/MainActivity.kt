@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
@@ -50,12 +51,33 @@ import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ListView
 import android.widget.ScrollView
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.coroutineScope
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.Scopes
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.Scope
+import com.google.api.client.extensions.android.http.AndroidHttp
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.FileContent
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.model.FileList
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.FileOutputStream
+import java.io.FileReader
 import java.io.IOException
+import java.io.OutputStream
+
 //import com.google.android.gms.auth.api.signin.GoogleSignIn
 //import com.google.android.gms.auth.api.signin.GoogleSignInClient
 //import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -77,6 +99,18 @@ class MainActivity : AppCompatActivity() {
         private const val API_LOGGER_TAG = "API LOGGER"
         private const val PERMISSION_REQUEST_CODE = 1
         private const val LOCATION_PERMISSION_REQUEST_CODE = 2
+
+        const val RC_AUTHORIZE_DRIVE = 1
+        const val MY_RECOVERED_DIR = "CealRecovered"
+        const val MY_RECOVERED_TEXT_FILE = "MyRecovered.txt"
+        const val MY_APP = "MyApp"
+        const val MY_APP_LOWER = "myapp"
+        const val TEXT = "text/plain"
+        const val DRIVE = "drive"
+        const val ROOT = "root"
+        const val MY_WALLET = "My Wallet"
+        const val MY_TEXT_FILE = "My.txt"
+        const val GOOGLE_DRIVE = "application/vnd.google-apps.folder"
     }
 
     private lateinit var list_adapter: ArrayAdapter<String>
@@ -163,6 +197,253 @@ class MainActivity : AppCompatActivity() {
 
     private val db = Firebase.firestore
 
+    private val fields = "nextPageToken, files(id, name)"
+
+    private val accessDriveScope: Scope = Scope(Scopes.DRIVE_FILE)
+    private val scopeEmail: Scope = Scope(Scopes.EMAIL)
+
+    private var isFileRead = false
+    private var googleSignInClient: GoogleSignInClient? = null
+    private val receivedText: String = "Hello World"
+
+    private var launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result ->
+        if (result.resultCode == Activity.RESULT_OK){
+            val data: Intent? = result.data
+            try {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                task.getResult(ApiException::class.java)
+                checkForGooglePermissions()
+            }
+            catch(e: ApiException){
+
+            }
+        }
+    }
+
+    private fun checkForGooglePermissions(){
+        if (!GoogleSignIn.hasPermissions(
+            GoogleSignIn.getLastSignedInAccount(this),
+            accessDriveScope,
+            scopeEmail
+            )){
+                GoogleSignIn.requestPermissions(
+                    this,
+                    RC_AUTHORIZE_DRIVE,
+                    GoogleSignIn.getLastSignedInAccount(this),
+                    accessDriveScope,
+                    scopeEmail
+                )
+        }
+        else{
+            lifecycle.coroutineScope.launch{driveSetUp()}
+        }
+    }
+
+    private fun createTempFileInInternalStorage(): File {
+        var privateDir = filesDir
+        privateDir = File(privateDir, MY_RECOVERED_DIR)
+        privateDir.mkdirs()
+        privateDir = File(privateDir, MY_RECOVERED_TEXT_FILE)
+        return privateDir
+    }
+
+    private fun readDataFromFile(file: File): String? {
+        try{
+            val br = BufferedReader(FileReader(file))
+            val line = br.readLines().joinToString()
+            br.close()
+            return line
+        }
+        catch(e: Exception){
+
+        }
+        return null
+    }
+
+    private suspend fun driveSetUp(){
+        val myAccount = GoogleSignIn.getLastSignedInAccount(this)
+        val credential = GoogleAccountCredential.usingOAuth2(
+            this,
+            Collections.singleton(Scopes.DRIVE_FILE)
+        )
+
+        credential.selectedAccount = myAccount?.account
+
+        val googleDriveService = Drive.Builder(
+            AndroidHttp.newCompatibleTransport(),
+            GsonFactory(),
+            credential
+        ).setApplicationName(MY_WALLET).build()
+
+        if (isFileRead){
+            withContext(Dispatchers.Default){
+                try{
+                    val fileListJob = async{ listDriveFiles(googleDriveService)}
+                    val fileList = fileListJob.await()
+                    val cealAppEnv = "${MY_APP_LOWER}.txt"
+
+                    if (fileList.isNotEmpty()){
+                        if (fileList.any {fileListItem ->
+                            (fileListItem.name == MY_TEXT_FILE || fileListItem.name == cealAppEnv)
+                        }){
+                            for( item in fileList ){
+                                if (item.name == cealAppEnv || item.name == MY_TEXT_FILE){
+                                    val createFileJob = async{ createTempFileInInternalStorage() }
+                                    val file = createFileJob.await()
+                                    val downloadFileJob = async{
+                                        downloadFile(googleDriveService, file, fileList[0].id)
+                                    }
+
+                                    downloadFileJob.await()
+
+                                    val readJob = async{ file?.let{ readDataFromFile(it) } }
+                                    val text = readJob.await()
+                                    withContext(Dispatchers.Main){ Toast.makeText(this@MainActivity, "$text", Toast.LENGTH_LONG).show()}
+
+                                    break
+                                }
+                            }
+                        }
+                        else{
+
+                        }
+                    }
+                    else{
+
+                    }
+                }
+                catch(e: Exception){
+
+                }
+            }
+        }
+        else{
+            withContext(Dispatchers.Default){
+                val googleDriveFileHolderJob = async {
+                    createFolder(googleDriveService, MY_APP, null)
+                }
+                val googleDriveFileHolder = googleDriveFileHolderJob.await()
+                val createFileJob = async { createFileInInternalStorage(receivedText) }
+                val file = createFileJob.await()
+
+                if (file !== null){
+                    val uploadFileJob = async {
+                        uploadFile(
+                            googleDriveService,
+                            file,
+                            TEXT,
+                            googleDriveFileHolder?.id
+                        )
+                    }
+                    uploadFileJob.await()
+                    withContext(Dispatchers.Main){
+                        Toast.makeText(this@MainActivity, "Success", Toast.LENGTH_LONG).show()
+                    }
+                }
+                else{
+
+                }
+            }
+        }
+    }
+
+    private fun createFolder(
+        myDriveService: Drive,
+        folderName: String?,
+        folderId: String?
+    ): GoogleDriveFileHolder?{
+        try {
+            val googleDriveFileHolder = GoogleDriveFileHolder()
+            val root = folderId?.let { listOf(it) } ?: listOf(ROOT)
+            val metadata = com.google.api.services.drive.model.File()
+                .setParents(root)
+                .setMimeType(GOOGLE_DRIVE)
+                .setName(folderName)
+            val googleFile = myDriveService
+                .files()
+                .create(metadata)
+                .execute()
+                ?: throw IOException("IO Exception")
+
+            googleDriveFileHolder.id = googleFile.id
+            return googleDriveFileHolder
+        }
+        catch (e:Exception){
+
+        }
+        return null
+    }
+
+
+
+    private fun uploadFile(
+        myDriveService: Drive,
+        localFile: File,
+        mimeType: String?,
+        folderID: String?
+        ): GoogleDriveFileHolder{
+        val root = folderID?.let{ listOf(it) }?: listOf(ROOT)
+        val metadata = com.google.api.services.drive.model.File()
+            .setParents(root)
+            .setMimeType(mimeType)
+            .setName(localFile.name)
+
+        val fileContent = FileContent(mimeType, localFile)
+        val fileMeta = myDriveService.files().create(
+            metadata,
+            fileContent
+        ).execute()
+
+        val googleDriveFileHolder = GoogleDriveFileHolder()
+        googleDriveFileHolder.id = fileMeta.id
+        googleDriveFileHolder.name = fileMeta.name
+
+        return googleDriveFileHolder
+    }
+
+    private fun createFileInInternalStorage(text: String): File?{
+        var privateDir = filesDir
+        privateDir = File(privateDir, MY_APP)
+        privateDir.mkdirs()
+        privateDir = File(privateDir, "${MY_APP_LOWER}.txt")
+
+        try {
+            val fileOutputStream = FileOutputStream(privateDir)
+            fileOutputStream.write(text.toByteArray())
+            fileOutputStream.close()
+            return privateDir
+        }
+        catch (e: FileNotFoundException){
+
+        }
+        return null
+    }
+
+    private fun downloadFile(
+        myDriveService: Drive,
+        targetFile: File?,
+        fileId: String?
+    ){
+        val outputStream: OutputStream = FileOutputStream(targetFile)
+        myDriveService.files()[fileId].executeMediaAndDownloadTo(outputStream)
+    }
+
+    private fun listDriveFiles(
+        myDriveService: Drive
+    ): List<com.google.api.services.drive.model.File>{
+        var result: FileList
+        var pageToken: String? = null
+
+        do {
+            result = myDriveService.files().list()
+                .setQ("mimeType='${TEXT}'")
+                .setSpaces(DRIVE)
+                .setFields(fields)
+                .setPageToken(pageToken)
+                .execute()
+        } while(pageToken != null)
+        return result.files
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -298,6 +579,16 @@ class MainActivity : AppCompatActivity() {
                 uploadButtonUp = false
                 uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryDarkColor))
                 // resumable upload PPG.txt to google drive
+                isFileRead = false
+                val gso = GoogleSignInOptions
+                    .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .requestEmail()
+                    .build()
+
+                googleSignInClient = GoogleSignIn.getClient(this, gso)
+
+                val signInIntent = googleSignInClient?.signInIntent
+                launcher.launch(signInIntent)
 
             }
             else{
