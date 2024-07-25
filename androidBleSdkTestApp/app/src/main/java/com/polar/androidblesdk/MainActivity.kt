@@ -331,7 +331,7 @@ class MainActivity : AppCompatActivity() {
                 val fileNames = listOf(
                     "PPG_${deviceId}_${getCurrentDate()}.txt",
                     "ACC_${deviceId}_${getCurrentDate()}.txt",
-                    "PGS_${deviceId}_${getCurrentDate()}.txt",
+                    "GPS_${deviceId}_${getCurrentDate()}.txt",
                     )
                 var allGood = true
                 for (fileName in fileNames) {
@@ -1167,7 +1167,7 @@ class MainActivity : AppCompatActivity() {
 //            "lat" to location.latitude,
 //            "lon" to location.longitude
 //        )
-        var gpsFileName = "PGS_${deviceId}_${getCurrentDate()}.txt"
+        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
         var unixTimestamp = Instant.now().toEpochMilli().toString()
         var gpsLine = "${getCurrentTimestamp()};${polarTimestamp};${unixTimestamp};${location.latitude};${location.longitude};"
         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
