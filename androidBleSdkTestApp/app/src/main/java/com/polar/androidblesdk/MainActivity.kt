@@ -78,6 +78,7 @@ import java.io.FileReader
 import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
+import java.time.Instant
 
 //import com.google.android.gms.auth.api.signin.GoogleSignIn
 //import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -320,8 +321,9 @@ class MainActivity : AppCompatActivity() {
         }
         else{
             withContext(Dispatchers.Default){
+                val folderName = "${deviceId}_${getCurrentDate()}"
                 val googleDriveFileHolderJob = async {
-                    createFolder(googleDriveService, MY_APP, null)
+                    createFolder(googleDriveService, folderName, null)
                 }
                 val googleDriveFileHolder = googleDriveFileHolderJob.await()
 //                val createFileJob = async { createFileInInternalStorage(receivedText) }
@@ -758,7 +760,8 @@ class MainActivity : AppCompatActivity() {
 //                                    )
                                     verifyStoragePermissions(this)
                                     var accFileName = "ACC_${deviceId}_${getCurrentDate()}.txt"
-                                    var accLine = "${getCurrentTimestamp()};$polarTimestamp;${data.x};${data.y};${data.z};"
+                                    var unixTimestamp = Instant.now().toEpochMilli().toString()
+                                    var accLine = "${getCurrentTimestamp()};$polarTimestamp;${unixTimestamp};${data.x};${data.y};${data.z};"
                                     createOrAppendFileInExternalStorage(accFileName, accLine)
 
 //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
@@ -811,7 +814,8 @@ class MainActivity : AppCompatActivity() {
 
                                         polarTimestamp = data.timeStamp.toString()
                                         var ppgFileName = "PPG_${deviceId}_${getCurrentDate()}.txt"
-                                        var ppgLine = "${getCurrentTimestamp()};${data.timeStamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
+                                        var unixTimestamp = Instant.now().toEpochMilli().toString()
+                                        var ppgLine = "${getCurrentTimestamp()};${data.timeStamp};${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
                                         createOrAppendFileInExternalStorage(ppgFileName, ppgLine)
                                         // we might want to normalize the ppg values
 //                                        var hashedPPG = hashMapOf(
@@ -1164,7 +1168,8 @@ class MainActivity : AppCompatActivity() {
 //            "lon" to location.longitude
 //        )
         var gpsFileName = "PGS_${deviceId}_${getCurrentDate()}.txt"
-        var gpsLine = "${getCurrentTimestamp()};${location.latitude};${location.longitude};"
+        var unixTimestamp = Instant.now().toEpochMilli().toString()
+        var gpsLine = "${getCurrentTimestamp()};${polarTimestamp};${unixTimestamp};${location.latitude};${location.longitude};"
         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
 
 //        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
