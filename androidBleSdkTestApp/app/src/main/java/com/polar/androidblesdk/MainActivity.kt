@@ -223,6 +223,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkForGooglePermissions(){
+        showToast("Checking Permissions...")
         if (!GoogleSignIn.hasPermissions(
             GoogleSignIn.getLastSignedInAccount(this),
             accessDriveScope,
@@ -263,6 +264,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun driveSetUp(){
+        showToast("Setting up Google Drive...")
+        uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
         val credential = GoogleAccountCredential.usingOAuth2(
             this,
@@ -366,6 +369,7 @@ class MainActivity : AppCompatActivity() {
                                 Toast.LENGTH_LONG
                             ).show()
                         }
+                    uploadButton.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.primaryColor))
                 }
             }
         }
@@ -727,7 +731,7 @@ class MainActivity : AppCompatActivity() {
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
                 ofaButtonUp = false
                 ofaButton.text = "end"
-                showToast("Record starts.")
+//                showToast("Record starts.")
             }
             else{
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
