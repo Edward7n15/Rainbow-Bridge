@@ -113,8 +113,8 @@ class MainActivity : AppCompatActivity() {
         const val GOOGLE_DRIVE = "application/vnd.google-apps.folder"
     }
 
-    private lateinit var list_adapter: ArrayAdapter<String>
-    private val items: MutableList<String> = mutableListOf()
+//    private lateinit var list_adapter: ArrayAdapter<String>
+//    private val items: MutableList<String> = mutableListOf()
 
     private lateinit var polarTimestamp: String
     // ATTENTION! Replace with the device ID from your device.
@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
             )
         )
     }
-    private lateinit var broadcastDisposable: Disposable
+//    private lateinit var broadcastDisposable: Disposable
     private var scanDisposable: Disposable? = null
     private var autoConnectDisposable: Disposable? = null
     private var hrDisposable: Disposable? = null
@@ -166,23 +166,23 @@ class MainActivity : AppCompatActivity() {
 //    val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
 
 
-    private lateinit var broadcastButton: Button
+//    private lateinit var broadcastButton: Button
     private lateinit var connectButton: Button
-    private lateinit var autoConnectButton: Button
-    private lateinit var scanButton: Button
-    private lateinit var hrButton: Button
+//    private lateinit var autoConnectButton: Button
+//    private lateinit var scanButton: Button
+//    private lateinit var hrButton: Button
     //    private lateinit var ecgButton: Button
-    private lateinit var accButton: Button
-    private lateinit var gyrButton: Button
-    private lateinit var magButton: Button
-    private lateinit var ppgButton: Button
-    private lateinit var ppgValue: TextView
-    private lateinit var gpsValue: TextView
-    private lateinit var accValue: TextView
-    private lateinit var ppiButton: Button
+//    private lateinit var accButton: Button
+//    private lateinit var gyrButton: Button
+//    private lateinit var magButton: Button
+//    private lateinit var ppgButton: Button
+//    private lateinit var ppgValue: TextView
+//    private lateinit var gpsValue: TextView
+//    private lateinit var accValue: TextView
+//    private lateinit var ppiButton: Button
     //    private lateinit var listExercisesButton: Button
     //    private lateinit var setTimeButton: Button
-    private lateinit var toggleSdkModeButton: Button
+//    private lateinit var toggleSdkModeButton: Button
 
     //Verity Sense offline recording use
     private lateinit var ofaButton: Button
@@ -337,11 +337,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     uploadFileJob.await()
                     withContext(Dispatchers.Main){
-                        Toast.makeText(this@MainActivity, "Success", Toast.LENGTH_LONG).show()
+                        Toast.makeText(this@MainActivity, "Success! Thank you for uploading data today!", Toast.LENGTH_LONG).show()
                     }
                 }
                 else{
-
+                    showToast("Seems something went wrong...")
                 }
             }
         }
@@ -463,16 +463,16 @@ class MainActivity : AppCompatActivity() {
         deviceId = getData(this, "currentID", "unknown")
         uploadButton = findViewById(R.id.upload_button)
 
-        broadcastButton = findViewById(R.id.broadcast_button)
+//        broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
-        autoConnectButton = findViewById(R.id.auto_connect_button)
-        scanButton = findViewById(R.id.scan_button)
-        accButton = findViewById(R.id.acc_button)
-        ppgButton = findViewById(R.id.ohr_ppg_button)
-        ppgValue = findViewById(R.id.ppg_value)
-        gpsValue = findViewById(R.id.gps_value)
-        accValue = findViewById(R.id.acc_value)
-        toggleSdkModeButton = findViewById(R.id.toggle_SDK_mode)
+//        autoConnectButton = findViewById(R.id.auto_connect_button)
+//        scanButton = findViewById(R.id.scan_button)
+//        accButton = findViewById(R.id.acc_button)
+//        ppgButton = findViewById(R.id.ohr_ppg_button)
+//        ppgValue = findViewById(R.id.ppg_value)
+//        gpsValue = findViewById(R.id.gps_value)
+//        accValue = findViewById(R.id.acc_value)
+//        toggleSdkModeButton = findViewById(R.id.toggle_SDK_mode)
 
         //Verity Sense recording buttons
 
@@ -521,7 +521,7 @@ class MainActivity : AppCompatActivity() {
                 deviceConnected = false
                 val buttonText = getString(R.string.connect_to_device, deviceId)
                 toggleButtonUp(connectButton, buttonText)
-                toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
+//                toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
             }
 
             override fun disInformationReceived(identifier: String, uuid: UUID, value: String) {
@@ -537,14 +537,14 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        val listView: ListView = findViewById(R.id.devices_list)
-        list_adapter = ArrayAdapter(this,
-            R.layout.list_item,
-            R.id.text_item,
-            items
-        )
-        val cus_adapter = CustomAdapter(this, items) { position -> onButtonClick(position) }
-        listView.adapter = cus_adapter
+//        val listView: ListView = findViewById(R.id.devices_list)
+//        list_adapter = ArrayAdapter(this,
+//            R.layout.list_item,
+//            R.id.text_item,
+//            items
+//        )
+//        val cus_adapter = CustomAdapter(this, items) { position -> onButtonClick(position) }
+//        listView.adapter = cus_adapter
 
         promptID.setOnClickListener {
 //            connectButton.text = getString(R.string.connect_to_device, deviceId)
@@ -556,13 +556,13 @@ class MainActivity : AppCompatActivity() {
                 .setTitle("Enter your device ID: ")
                 .setView(input)
                 .setNeutralButton("clear the list"){dialog, which ->
-                    items.clear()
-                    cus_adapter.notifyDataSetChanged()
+//                    items.clear()
+//                    cus_adapter.notifyDataSetChanged()
                 }
                 .setPositiveButton("OK") { dialog, which ->
                     deviceId = input.text.toString()
-                    items.add(deviceId)
-                    cus_adapter.notifyDataSetChanged()
+//                    items.add(deviceId)
+//                    cus_adapter.notifyDataSetChanged()
                     connectButton.text = getString(R.string.connect_to_device, deviceId)
                     saveData(this, "currentID", deviceId)
                 }
@@ -574,49 +574,39 @@ class MainActivity : AppCompatActivity() {
         }
 
         uploadButton.setOnClickListener{
-            if (uploadButtonUp){
-                showToast("going down")
-                uploadButtonUp = false
-                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryDarkColor))
-                // resumable upload PPG.txt to google drive
-                isFileRead = false
-                val gso = GoogleSignInOptions
-                    .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                    .requestEmail()
-                    .build()
+            uploadButtonUp = false
+            // resumable upload PPG.txt to google drive
+            isFileRead = false
+            val gso = GoogleSignInOptions
+                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build()
 
-                googleSignInClient = GoogleSignIn.getClient(this, gso)
+            googleSignInClient = GoogleSignIn.getClient(this, gso)
 
-                val signInIntent = googleSignInClient?.signInIntent
-                launcher.launch(signInIntent)
-
-            }
-            else{
-                showToast("going up")
-                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
-                uploadButtonUp = true
-            }
+            val signInIntent = googleSignInClient?.signInIntent
+            launcher.launch(signInIntent)
         }
 
-        broadcastButton.setOnClickListener {
-            if (!this::broadcastDisposable.isInitialized || broadcastDisposable.isDisposed) {
-                toggleButtonDown(broadcastButton, R.string.listening_broadcast)
-                broadcastDisposable = api.startListenForPolarHrBroadcasts(null)
-                    .subscribe(
-                        { polarBroadcastData: PolarHrBroadcastData ->
-                            Log.d(TAG, "HR BROADCAST ${polarBroadcastData.polarDeviceInfo.deviceId} HR: ${polarBroadcastData.hr} batt: ${polarBroadcastData.batteryStatus}")
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(broadcastButton, R.string.listen_broadcast)
-                            Log.e(TAG, "Broadcast listener failed. Reason $error")
-                        },
-                        { Log.d(TAG, "complete") }
-                    )
-            } else {
-                toggleButtonUp(broadcastButton, R.string.listen_broadcast)
-                broadcastDisposable.dispose()
-            }
-        }
+//        broadcastButton.setOnClickListener {
+//            if (!this::broadcastDisposable.isInitialized || broadcastDisposable.isDisposed) {
+//                toggleButtonDown(broadcastButton, R.string.listening_broadcast)
+//                broadcastDisposable = api.startListenForPolarHrBroadcasts(null)
+//                    .subscribe(
+//                        { polarBroadcastData: PolarHrBroadcastData ->
+//                            Log.d(TAG, "HR BROADCAST ${polarBroadcastData.polarDeviceInfo.deviceId} HR: ${polarBroadcastData.hr} batt: ${polarBroadcastData.batteryStatus}")
+//                        },
+//                        { error: Throwable ->
+//                            toggleButtonUp(broadcastButton, R.string.listen_broadcast)
+//                            Log.e(TAG, "Broadcast listener failed. Reason $error")
+//                        },
+//                        { Log.d(TAG, "complete") }
+//                    )
+//            } else {
+//                toggleButtonUp(broadcastButton, R.string.listen_broadcast)
+//                broadcastDisposable.dispose()
+//            }
+//        }
 
         connectButton.text = getString(R.string.connect_to_device, deviceId)
         connectButton.setOnClickListener {
@@ -636,65 +626,67 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        autoConnectButton.setOnClickListener {
-            if (autoConnectDisposable != null) {
-                autoConnectDisposable?.dispose()
-            }
-            autoConnectDisposable = api.autoConnectToDevice(-60, "180D", null)
-                .subscribe(
-                    { Log.d(TAG, "auto connect search complete") },
-                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-                )
-        }
+//        autoConnectButton.setOnClickListener {
+//            if (autoConnectDisposable != null) {
+//                autoConnectDisposable?.dispose()
+//            }
+//            autoConnectDisposable = api.autoConnectToDevice(-60, "180D", null)
+//                .subscribe(
+//                    { Log.d(TAG, "auto connect search complete") },
+//                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
+//                )
+//        }
 
-        scanButton.setOnClickListener {
-            val isDisposed = scanDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                toggleButtonDown(scanButton, R.string.scanning_devices)
-                scanDisposable = api.searchForDevice()
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarDeviceInfo: PolarDeviceInfo ->
-                            Log.d(TAG, "polar device found id: " + polarDeviceInfo.deviceId + " address: " + polarDeviceInfo.address + " rssi: " + polarDeviceInfo.rssi + " name: " + polarDeviceInfo.name + " isConnectable: " + polarDeviceInfo.isConnectable)
-                            if (polarDeviceInfo.deviceId != deviceId) {
-                                deviceId = polarDeviceInfo.deviceId
-                                promptID.text = deviceId
-
-                                connectButton.text = getString(R.string.connect_to_device, deviceId)
-                                items.add(deviceId)
-                                cus_adapter.notifyDataSetChanged()
-                                saveData(this, "currentID", deviceId)
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(scanButton, "Scan devices")
-                            Log.e(TAG, "Device scan failed. Reason $error")
-                        },
-                        {
-                            toggleButtonUp(scanButton, "Scan devices")
-                            Log.d(TAG, "complete")
-                        }
-                    )
-            } else {
-                toggleButtonUp(scanButton, "Scan devices")
-                scanDisposable?.dispose()
-            }
-        }
+//        scanButton.setOnClickListener {
+//            val isDisposed = scanDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                toggleButtonDown(scanButton, R.string.scanning_devices)
+//                scanDisposable = api.searchForDevice()
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(
+//                        { polarDeviceInfo: PolarDeviceInfo ->
+//                            Log.d(TAG, "polar device found id: " + polarDeviceInfo.deviceId + " address: " + polarDeviceInfo.address + " rssi: " + polarDeviceInfo.rssi + " name: " + polarDeviceInfo.name + " isConnectable: " + polarDeviceInfo.isConnectable)
+//                            if (polarDeviceInfo.deviceId != deviceId) {
+//                                deviceId = polarDeviceInfo.deviceId
+//                                promptID.text = deviceId
+//
+//                                connectButton.text = getString(R.string.connect_to_device, deviceId)
+//                                items.add(deviceId)
+//                                cus_adapter.notifyDataSetChanged()
+//                                saveData(this, "currentID", deviceId)
+//                            }
+//                        },
+//                        { error: Throwable ->
+//                            toggleButtonUp(scanButton, "Scan devices")
+//                            Log.e(TAG, "Device scan failed. Reason $error")
+//                        },
+//                        {
+//                            toggleButtonUp(scanButton, "Scan devices")
+//                            Log.d(TAG, "complete")
+//                        }
+//                    )
+//            } else {
+//                toggleButtonUp(scanButton, "Scan devices")
+//                scanDisposable?.dispose()
+//            }
+//        }
 
         ofaButton.setOnClickListener{
             if (ofaButtonUp){
-                ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryDarkColor))
+                ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
                 ofaButtonUp = false
                 ofaButton.text = "end"
+                showToast("Record ends.")
             }
             else{
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
                 ofaButton.text = "start"
                 ofaButtonUp = true
+                showToast("Record starts.")
             }
             val isDisposed = accDisposable?.isDisposed ?: true
             if (isDisposed) {
-                toggleButtonDown(accButton, R.string.stop_acc_stream)
+//                toggleButtonDown(accButton, R.string.stop_acc_stream)
                 accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
                     .flatMap { settings: PolarSensorSetting ->
                         api.startAccStreaming(deviceId, settings)
@@ -703,8 +695,8 @@ class MainActivity : AppCompatActivity() {
                     .subscribe(
                         { polarAccelerometerData: PolarAccelerometerData ->
                             for (data in polarAccelerometerData.samples) {
-                                accValue.text =
-                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
+//                                accValue.text =
+//                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
 
                                 polarTimestamp = data.timeStamp.toString()
 
@@ -735,7 +727,7 @@ class MainActivity : AppCompatActivity() {
                             }
                         },
                         { error: Throwable ->
-                            toggleButtonUp(accButton, R.string.start_acc_stream)
+//                            toggleButtonUp(accButton, R.string.start_acc_stream)
                             Log.e(TAG, "ACC stream failed. Reason $error")
                         },
                         {
@@ -744,14 +736,14 @@ class MainActivity : AppCompatActivity() {
                         }
                     )
             } else {
-                toggleButtonUp(accButton, R.string.start_acc_stream)
+//                toggleButtonUp(accButton, R.string.start_acc_stream)
                 // NOTE dispose will stop streaming if it is "running"
                 accDisposable?.dispose()
             }
 
             // PPG and location part
             if (isDisposed) {
-                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
+//                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
                 ppgDisposable =
                     requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
                         .flatMap { settings: PolarSensorSetting ->
@@ -763,10 +755,10 @@ class MainActivity : AppCompatActivity() {
                                     uploading = true
                                     Log.d(uploading.toString(), "record GPS status")
                                     for (data in polarPpgData.samples) {
-                                        runOnUiThread {
-                                            ppgValue.text =
-                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
-                                        }
+//                                        runOnUiThread {
+//                                            ppgValue.text =
+//                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
+//                                        }
 
                                         polarTimestamp = data.timeStamp.toString()
                                         var ppgFileName = "PPG.txt"
@@ -788,13 +780,13 @@ class MainActivity : AppCompatActivity() {
                                 }
                             },
                             { error: Throwable ->
-                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+//                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
                                 Log.e(TAG, "PPG stream failed. Reason $error")
                             },
                             { Log.d(TAG, "PPG stream complete") }
                         )
             } else {
-                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+//                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
                 if (uploading) {
                     uploading = false
                 }
@@ -805,160 +797,160 @@ class MainActivity : AppCompatActivity() {
 
         }
 
-        accButton.setOnClickListener {
-            val isDisposed = accDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                toggleButtonDown(accButton, R.string.stop_acc_stream)
-                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                    .flatMap { settings: PolarSensorSetting ->
-                        api.startAccStreaming(deviceId, settings)
-                    }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarAccelerometerData: PolarAccelerometerData ->
-                            for (data in polarAccelerometerData.samples) {
-                                accValue.text =
-                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
-
-                                polarTimestamp = data.timeStamp.toString()
-
-                                if (uploading) {
-                                    var hashedACC = hashMapOf(
-                                        "x" to data.x,
-                                        "y" to data.y,
-                                        "z" to data.z,
-                                        "timeStamp" to data.timeStamp,
-                                    )
-                                    verifyStoragePermissions(this)
-                                    var accFileName = "ACC.txt"
-                                    var line = "$polarTimestamp,${data.x},${data.y},${data.z}"
-                                    createOrAppendFileInExternalStorage(accFileName, line)
-
-                                var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
-                                accCollection.document(polarTimestamp)
-                                    .set(hashedACC)
-                                    //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
-                                    .addOnFailureListener { e ->
-                                        Log.w(
-                                            TAG,
-                                            "Error adding document",
-                                            e
-                                        )
-                                    }
-                                }
-                            }
-                        },
-                        { error: Throwable ->
-                            toggleButtonUp(accButton, R.string.start_acc_stream)
-                            Log.e(TAG, "ACC stream failed. Reason $error")
-                        },
-                        {
-                            showToast("ACC stream complete")
-                            Log.d(TAG, "ACC stream complete")
-                        }
-                    )
-            } else {
-                toggleButtonUp(accButton, R.string.start_acc_stream)
-                // NOTE dispose will stop streaming if it is "running"
-                accDisposable?.dispose()
-            }
-        }
-
-        ppgButton.setOnClickListener {
-            val isDisposed = ppgDisposable?.isDisposed ?: true
-            if (isDisposed) {
-                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
-                ppgDisposable =
-                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
-                        .flatMap { settings: PolarSensorSetting ->
-                            api.startPpgStreaming(deviceId, settings)
-                        }
-                        .subscribe(
-                            { polarPpgData: PolarPpgData ->
-                                if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
-                                    uploading = true
-                                    Log.d(uploading.toString(), "record GPS status")
-                                    for (data in polarPpgData.samples) {
-                                        runOnUiThread {
-                                            ppgValue.text =
-                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
-                                        }
-
-                                        polarTimestamp = data.timeStamp.toString()
-                                        // we might want to normalize the ppg values
-                                        var hashedPPG = hashMapOf(
-                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-                                            "ppg0" to data.channelSamples[0],
-                                            "ppg1" to data.channelSamples[1],
-                                            "ppg2" to data.channelSamples[2],
-                                            "timeStamp" to data.timeStamp,
-                                        )
-                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
-                                        ppgCollection.document(polarTimestamp)
-                                            .set(hashedPPG)
-                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
-                                    }
-                                }
-                            },
-                            { error: Throwable ->
-                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                                Log.e(TAG, "PPG stream failed. Reason $error")
-                            },
-                            { Log.d(TAG, "PPG stream complete") }
-                        )
-            } else {
-                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                if (uploading) {
-                    uploading = false
-                }
-                Log.d(uploading.toString(), "upload status")
-                // NOTE dispose will stop streaming if it is "running"
-                ppgDisposable?.dispose()
-            }
-        }
-
-        toggleSdkModeButton.setOnClickListener {
-            toggleSdkModeButton.isEnabled = false
-            if (!sdkModeEnabledStatus) {
-                sdkModeEnableDisposable = api.enableSDKMode(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            Log.d(TAG, "SDK mode enabled")
-                            // at this point dispose all existing streams. SDK mode enable command
-                            // stops all the streams but client is not informed. This is workaround
-                            // for the bug.
-                            disposeAllStreams()
-                            toggleSdkModeButton.isEnabled = true
-                            sdkModeEnabledStatus = true
-                            toggleButtonDown(toggleSdkModeButton, R.string.disable_sdk_mode)
-                        },
-                        { error ->
-                            toggleSdkModeButton.isEnabled = true
-                            val errorString = "SDK mode enable failed: $error"
-                            showToast(errorString)
-                            Log.e(TAG, errorString)
-                        }
-                    )
-            } else {
-                sdkModeEnableDisposable = api.disableSDKMode(deviceId)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        {
-                            Log.d(TAG, "SDK mode disabled")
-                            toggleSdkModeButton.isEnabled = true
-                            sdkModeEnabledStatus = false
-                            toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
-                        },
-                        { error ->
-                            toggleSdkModeButton.isEnabled = true
-                            val errorString = "SDK mode disable failed: $error"
-                            showToast(errorString)
-                            Log.e(TAG, errorString)
-                        }
-                    )
-            }
-        }
+//        accButton.setOnClickListener {
+//            val isDisposed = accDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                toggleButtonDown(accButton, R.string.stop_acc_stream)
+//                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+//                    .flatMap { settings: PolarSensorSetting ->
+//                        api.startAccStreaming(deviceId, settings)
+//                    }
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(
+//                        { polarAccelerometerData: PolarAccelerometerData ->
+//                            for (data in polarAccelerometerData.samples) {
+//                                accValue.text =
+//                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
+//
+//                                polarTimestamp = data.timeStamp.toString()
+//
+//                                if (uploading) {
+//                                    var hashedACC = hashMapOf(
+//                                        "x" to data.x,
+//                                        "y" to data.y,
+//                                        "z" to data.z,
+//                                        "timeStamp" to data.timeStamp,
+//                                    )
+//                                    verifyStoragePermissions(this)
+//                                    var accFileName = "ACC.txt"
+//                                    var line = "$polarTimestamp,${data.x},${data.y},${data.z}"
+//                                    createOrAppendFileInExternalStorage(accFileName, line)
+//
+//                                var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
+//                                accCollection.document(polarTimestamp)
+//                                    .set(hashedACC)
+//                                    //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
+//                                    .addOnFailureListener { e ->
+//                                        Log.w(
+//                                            TAG,
+//                                            "Error adding document",
+//                                            e
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                        },
+//                        { error: Throwable ->
+//                            toggleButtonUp(accButton, R.string.start_acc_stream)
+//                            Log.e(TAG, "ACC stream failed. Reason $error")
+//                        },
+//                        {
+//                            showToast("ACC stream complete")
+//                            Log.d(TAG, "ACC stream complete")
+//                        }
+//                    )
+//            } else {
+//                toggleButtonUp(accButton, R.string.start_acc_stream)
+//                // NOTE dispose will stop streaming if it is "running"
+//                accDisposable?.dispose()
+//            }
+//        }
+//
+//        ppgButton.setOnClickListener {
+//            val isDisposed = ppgDisposable?.isDisposed ?: true
+//            if (isDisposed) {
+//                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
+//                ppgDisposable =
+//                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
+//                        .flatMap { settings: PolarSensorSetting ->
+//                            api.startPpgStreaming(deviceId, settings)
+//                        }
+//                        .subscribe(
+//                            { polarPpgData: PolarPpgData ->
+//                                if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
+//                                    uploading = true
+//                                    Log.d(uploading.toString(), "record GPS status")
+//                                    for (data in polarPpgData.samples) {
+//                                        runOnUiThread {
+//                                            ppgValue.text =
+//                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
+//                                        }
+//
+//                                        polarTimestamp = data.timeStamp.toString()
+//                                        // we might want to normalize the ppg values
+//                                        var hashedPPG = hashMapOf(
+//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
+//                                            "ppg0" to data.channelSamples[0],
+//                                            "ppg1" to data.channelSamples[1],
+//                                            "ppg2" to data.channelSamples[2],
+//                                            "timeStamp" to data.timeStamp,
+//                                        )
+//                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
+//                                        ppgCollection.document(polarTimestamp)
+//                                            .set(hashedPPG)
+//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+//                                    }
+//                                }
+//                            },
+//                            { error: Throwable ->
+//                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+//                                Log.e(TAG, "PPG stream failed. Reason $error")
+//                            },
+//                            { Log.d(TAG, "PPG stream complete") }
+//                        )
+//            } else {
+//                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+//                if (uploading) {
+//                    uploading = false
+//                }
+//                Log.d(uploading.toString(), "upload status")
+//                // NOTE dispose will stop streaming if it is "running"
+//                ppgDisposable?.dispose()
+//            }
+//        }
+//
+//        toggleSdkModeButton.setOnClickListener {
+//            toggleSdkModeButton.isEnabled = false
+//            if (!sdkModeEnabledStatus) {
+//                sdkModeEnableDisposable = api.enableSDKMode(deviceId)
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(
+//                        {
+//                            Log.d(TAG, "SDK mode enabled")
+//                            // at this point dispose all existing streams. SDK mode enable command
+//                            // stops all the streams but client is not informed. This is workaround
+//                            // for the bug.
+//                            disposeAllStreams()
+//                            toggleSdkModeButton.isEnabled = true
+//                            sdkModeEnabledStatus = true
+//                            toggleButtonDown(toggleSdkModeButton, R.string.disable_sdk_mode)
+//                        },
+//                        { error ->
+//                            toggleSdkModeButton.isEnabled = true
+//                            val errorString = "SDK mode enable failed: $error"
+//                            showToast(errorString)
+//                            Log.e(TAG, errorString)
+//                        }
+//                    )
+//            } else {
+//                sdkModeEnableDisposable = api.disableSDKMode(deviceId)
+//                    .observeOn(AndroidSchedulers.mainThread())
+//                    .subscribe(
+//                        {
+//                            Log.d(TAG, "SDK mode disabled")
+//                            toggleSdkModeButton.isEnabled = true
+//                            sdkModeEnabledStatus = false
+//                            toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
+//                        },
+//                        { error ->
+//                            toggleSdkModeButton.isEnabled = true
+//                            val errorString = "SDK mode disable failed: $error"
+//                            showToast(errorString)
+//                            Log.e(TAG, errorString)
+//                        }
+//                    )
+//            }
+//        }
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -975,9 +967,9 @@ class MainActivity : AppCompatActivity() {
     private fun onButtonClick(position: Int) {
         try {
             if (deviceConnected) {
-                api.disconnectFromDevice(items[position])
+//                api.disconnectFromDevice(items[position])
             } else {
-                api.connectToDevice(items[position])
+//                api.connectToDevice(items[position])
             }
         } catch (polarInvalidArgument: PolarInvalidArgument) {
             val attempt = if (deviceConnected) {
@@ -1111,7 +1103,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateUI(location: Location){
-        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
+//        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
         // store the value here and keep updating it
         // upload it to firebase when PPG button is clicked
         longitude = (location.longitude).toString()
@@ -1228,23 +1220,23 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun disableAllButtons() {
-        broadcastButton.isEnabled = false
+//        broadcastButton.isEnabled = false
         connectButton.isEnabled = false
-        autoConnectButton.isEnabled = false
-        scanButton.isEnabled = false
-        accButton.isEnabled = false
-        ppgButton.isEnabled = false
-        toggleSdkModeButton.isEnabled = false
+//        autoConnectButton.isEnabled = false
+//        scanButton.isEnabled = false
+//        accButton.isEnabled = false
+//        ppgButton.isEnabled = false
+//        toggleSdkModeButton.isEnabled = false
     }
 
     private fun enableAllButtons() {
-        broadcastButton.isEnabled = true
+//        broadcastButton.isEnabled = true
         connectButton.isEnabled = true
-        autoConnectButton.isEnabled = true
-        scanButton.isEnabled = true
-        accButton.isEnabled = true
-        ppgButton.isEnabled = true
-        toggleSdkModeButton.isEnabled = true
+//        autoConnectButton.isEnabled = true
+//        scanButton.isEnabled = true
+//        accButton.isEnabled = true
+//        ppgButton.isEnabled = true
+//        toggleSdkModeButton.isEnabled = true
         //Verity Sense recording buttons
     }
 

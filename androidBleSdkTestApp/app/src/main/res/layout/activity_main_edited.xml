@@ -14,9 +14,9 @@
         <Button
             android:id="@+id/prompt_ID_button"
             android:layout_width="match_parent"
-            android:layout_height="217dp"
-            android:textSize="28sp"
-            android:text="enter your device id" />
+            android:layout_height="116dp"
+            android:text="enter your device id"
+            android:textSize="28sp" />
 
         <Button
             android:id="@+id/connect_button"
@@ -35,68 +35,60 @@
         <Button
             android:id="@+id/upload_button"
             android:layout_width="match_parent"
-            android:layout_height="81dp"
-            android:text="Upload" />
+            android:layout_height="179dp"
+            android:text="Upload"
+            android:textSize="28sp" />
 
-        <ListView
-            android:id="@+id/devices_list"
-            android:layout_width="match_parent"
-            android:layout_height="269dp" >
-        </ListView>
+<!--        <ListView-->
+<!--            android:id="@+id/devices_list"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="269dp" >-->
+<!--        </ListView>-->
 
-        <Button
-            android:id="@+id/auto_connect_button"
-            android:layout_width="match_parent"
-            android:layout_height="83dp"
-            android:backgroundTint="@color/specialColor"
-            android:text="@string/auto_connect_toggle" />
+<!--        <Button-->
+<!--            android:id="@+id/auto_connect_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="83dp"-->
+<!--            android:backgroundTint="@color/specialColor"-->
+<!--            android:text="@string/auto_connect_toggle" />-->
 
-        <Button
-            android:id="@+id/scan_button"
-            android:layout_width="match_parent"
-            android:layout_height="103dp"
-            android:text="@string/scan_devices" />
+<!--        <Button-->
+<!--            android:id="@+id/scan_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="103dp"-->
+<!--            android:text="@string/scan_devices" />-->
 
 
 
-        <TextView
-            android:id="@+id/ppg_value"
-            android:layout_width="match_parent"
-            android:layout_height="150dp"
-            android:background="#6ab84f"
-            android:text="@string/ppg_value"
-            android:textColor="#fcf3f6" />
+<!--        <TextView-->
+<!--            android:id="@+id/ppg_value"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="150dp"-->
+<!--            android:background="#6ab84f"-->
+<!--            android:text="@string/ppg_value"-->
+<!--            android:textColor="#fcf3f6" />-->
 
-        <TextView
-            android:id="@+id/gps_value"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="#6a885f"
-            android:text="@string/gps_value"
-            android:textColor="#fcf3f6" />
+<!--        <TextView-->
+<!--            android:id="@+id/gps_value"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="100dp"-->
+<!--            android:background="#6a885f"-->
+<!--            android:text="@string/gps_value"-->
+<!--            android:textColor="#fcf3f6" />-->
 
-        <TextView
-            android:id="@+id/acc_value"
-            android:layout_width="match_parent"
-            android:layout_height="100dp"
-            android:background="#6a889f"
-            android:text="@string/gps_value"
-            android:textColor="#fcf3f6" />
+<!--        <TextView-->
+<!--            android:id="@+id/acc_value"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="100dp"-->
+<!--            android:background="#6a889f"-->
+<!--            android:text="@string/gps_value"-->
+<!--            android:textColor="#fcf3f6" />-->
 
-        <Button
-            android:id="@+id/broadcast_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/listen_broadcast" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="2dp"
-            android:background="@android:color/white" />
+<!--        <Button-->
+<!--            android:id="@+id/broadcast_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/listen_broadcast" />-->
 
         <View
             android:layout_width="match_parent"
@@ -107,24 +99,33 @@
             android:layout_marginBottom="2dp"
             android:background="@android:color/white" />
 
-        <Button
-            android:id="@+id/acc_button"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/start_acc_stream" />
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/white" />
 
-        <Button
-            android:id="@+id/ohr_ppg_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/specialColor"
-            android:text="@string/start_ppg_stream" />
+<!--        <Button-->
+<!--            android:id="@+id/acc_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/start_acc_stream" />-->
 
-        <Button
-            android:id="@+id/toggle_SDK_mode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/enable_sdk_mode" />
+<!--        <Button-->
+<!--            android:id="@+id/ohr_ppg_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:backgroundTint="@color/specialColor"-->
+<!--            android:text="@string/start_ppg_stream" />-->
+
+<!--        <Button-->
+<!--            android:id="@+id/toggle_SDK_mode"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/enable_sdk_mode" />-->
 
     </LinearLayout>
 </ScrollView>
