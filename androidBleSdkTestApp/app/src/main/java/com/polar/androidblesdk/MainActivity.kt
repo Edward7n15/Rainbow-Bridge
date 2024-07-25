@@ -77,6 +77,7 @@ import java.io.FileOutputStream
 import java.io.FileReader
 import java.io.IOException
 import java.io.OutputStream
+import java.text.SimpleDateFormat
 
 //import com.google.android.gms.auth.api.signin.GoogleSignIn
 //import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -323,25 +324,46 @@ class MainActivity : AppCompatActivity() {
                     createFolder(googleDriveService, MY_APP, null)
                 }
                 val googleDriveFileHolder = googleDriveFileHolderJob.await()
-                val createFileJob = async { createFileInInternalStorage(receivedText) }
-                val file = createFileJob.await()
-
-                if (file !== null){
-                    val uploadFileJob = async {
-                        uploadFile(
-                            googleDriveService,
-                            file,
-                            TEXT,
-                            googleDriveFileHolder?.id
-                        )
-                    }
-                    uploadFileJob.await()
-                    withContext(Dispatchers.Main){
-                        Toast.makeText(this@MainActivity, "Success! Thank you for uploading data today!", Toast.LENGTH_LONG).show()
+//                val createFileJob = async { createFileInInternalStorage(receivedText) }
+//                val file = createFileJob.await()
+                val fileNames = listOf(
+                    "PPG_${deviceId}_${getCurrentDate()}.txt",
+                    "ACC_${deviceId}_${getCurrentDate()}.txt",
+                    "PGS_${deviceId}_${getCurrentDate()}.txt",
+                    )
+                var allGood = true
+                for (fileName in fileNames) {
+                    val file = getFileFromDownloads(fileName)
+                    if (file !== null) {
+                        val uploadFileJob = async {
+                            uploadFile(
+                                googleDriveService,
+                                file,
+                                TEXT,
+                                googleDriveFileHolder?.id,
+                            )
+                        }
+                        uploadFileJob.await()
+//                        withContext(Dispatchers.Main) {
+//                            Toast.makeText(
+//                                this@MainActivity,
+//                                "Success! Thank you for uploading data today!",
+//                                Toast.LENGTH_LONG
+//                            ).show()
+//                        }
+                    } else {
+                        showToast("Seems something went wrong...")
+                        allGood = false
                     }
                 }
-                else{
-                    showToast("Seems something went wrong...")
+                if (allGood){
+                    withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Success! Thank you for uploading data today!",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                 }
             }
         }
@@ -374,6 +396,33 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
+    private fun uploadSpecFile(myDriveService: Drive, mimeType: String?, folderID: String?, filename: String): GoogleDriveFileHolder {
+        // Path to the file created by the ofaButton
+        val localFile = File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "${filename}.txt")
+
+        if (!localFile.exists()) {
+            Log.e(TAG, "File not found: ${localFile.absolutePath}")
+            return GoogleDriveFileHolder().apply { name = "File not found"; id = "" }
+        }
+
+        val root = folderID?.let { listOf(it) } ?: listOf(ROOT)
+        val metadata = com.google.api.services.drive.model.File()
+            .setParents(root)
+            .setMimeType(mimeType)
+            .setName(localFile.name)
+
+        val fileContent = FileContent(mimeType, localFile)
+        val fileMeta = myDriveService.files().create(
+            metadata,
+            fileContent
+        ).execute()
+
+        val googleDriveFileHolder = GoogleDriveFileHolder()
+        googleDriveFileHolder.id = fileMeta.id
+        googleDriveFileHolder.name = fileMeta.name
+
+        return googleDriveFileHolder
+    }
 
 
     private fun uploadFile(
@@ -676,13 +725,13 @@ class MainActivity : AppCompatActivity() {
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
                 ofaButtonUp = false
                 ofaButton.text = "end"
-                showToast("Record ends.")
+                showToast("Record starts.")
             }
             else{
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
                 ofaButton.text = "start"
                 ofaButtonUp = true
-                showToast("Record starts.")
+                showToast("Record ends.")
             }
             val isDisposed = accDisposable?.isDisposed ?: true
             if (isDisposed) {
@@ -708,8 +757,8 @@ class MainActivity : AppCompatActivity() {
 //                                        "timeStamp" to data.timeStamp,
 //                                    )
                                     verifyStoragePermissions(this)
-                                    var accFileName = "ACC.txt"
-                                    var accLine = "$polarTimestamp,${data.x},${data.y},${data.z}"
+                                    var accFileName = "ACC_${deviceId}_${getCurrentDate()}.txt"
+                                    var accLine = "${getCurrentTimestamp()};$polarTimestamp;${data.x};${data.y};${data.z};"
                                     createOrAppendFileInExternalStorage(accFileName, accLine)
 
 //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
@@ -761,8 +810,8 @@ class MainActivity : AppCompatActivity() {
 //                                        }
 
                                         polarTimestamp = data.timeStamp.toString()
-                                        var ppgFileName = "PPG.txt"
-                                        var ppgLine = "${data.timeStamp},${data.channelSamples[0]},${data.channelSamples[1]},${data.channelSamples[2]},${data.channelSamples[3]}"
+                                        var ppgFileName = "PPG_${deviceId}_${getCurrentDate()}.txt"
+                                        var ppgLine = "${getCurrentTimestamp()};${data.timeStamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
                                         createOrAppendFileInExternalStorage(ppgFileName, ppgLine)
                                         // we might want to normalize the ppg values
 //                                        var hashedPPG = hashMapOf(
@@ -1114,8 +1163,8 @@ class MainActivity : AppCompatActivity() {
 //            "lat" to location.latitude,
 //            "lon" to location.longitude
 //        )
-        var gpsFileName = "PGS.txt"
-        var gpsLine = "${location.latitude},${location.longitude}"
+        var gpsFileName = "PGS_${deviceId}_${getCurrentDate()}.txt"
+        var gpsLine = "${getCurrentTimestamp()};${location.latitude};${location.longitude};"
         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
 
 //        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
@@ -1294,7 +1343,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun getCurrentTimestamp(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+        return dateFormat.format(Date())
+    }
 
+    fun getCurrentDate(): String {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return dateFormat.format(Date())
+    }
 
-
+    fun getFileFromDownloads(fileName: String): File? {
+        val state = Environment.getExternalStorageState()
+        if (Environment.MEDIA_MOUNTED == state) {
+            // Get the Downloads directory
+            val downloadsDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadsDir != null) {
+                val file = File(downloadsDir, fileName)
+                return file
+            }
+            else{
+                return null
+            }
+        }
+        else{
+            return null
+        }
+    }
 }
