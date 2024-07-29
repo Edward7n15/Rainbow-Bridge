@@ -1,5 +1,6 @@
 package com.polar.androidblesdk
 
+//import LocationService
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -10,9 +11,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.os.PowerManager
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
@@ -67,6 +70,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.model.FileList
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -118,7 +122,7 @@ class MainActivity : AppCompatActivity() {
 //    private lateinit var list_adapter: ArrayAdapter<String>
 //    private val items: MutableList<String> = mutableListOf()
 
-    private lateinit var polarTimestamp: String
+//    private lateinit var polarTimestamp: String
     // ATTENTION! Replace with the device ID from your device.
 
     private var deviceId = "unknown"
@@ -155,6 +159,7 @@ class MainActivity : AppCompatActivity() {
 
     private var uploadButtonUp: Boolean = true
     private var ofaButtonUp: Boolean = true
+    private var isLocationServiceRunning: Boolean = false
 
     private var sdkModeEnabledStatus = false
     private var deviceConnected = false
@@ -190,6 +195,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var ofaButton: Button
     private lateinit var promptID: Button
     private lateinit var uploadButton: Button
+    private lateinit var wakeLock: PowerManager.WakeLock
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -504,6 +510,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_edited)
 
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::MyWakelockTag")
+        acquireWakeLock()
+
 //        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
 //            startLocationUpdates()
 //        }
@@ -517,7 +527,7 @@ class MainActivity : AppCompatActivity() {
         promptID = findViewById(R.id.prompt_ID_button)
         deviceId = getData(this, "currentID", "unknown")
         uploadButton = findViewById(R.id.upload_button)
-
+//        isLocationServiceRunning = false
 //        broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
 //        autoConnectButton = findViewById(R.id.auto_connect_button)
@@ -543,7 +553,7 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
         }
         else {
-            startLocationUpdates()
+//            startLocationUpdates()
         }
 
         api.setApiCallback(object : PolarBleApiCallback() {
@@ -727,131 +737,155 @@ class MainActivity : AppCompatActivity() {
 //        }
 
         ofaButton.setOnClickListener{
+            val mainScope = MainScope()
             if (ofaButtonUp){
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
                 ofaButtonUp = false
                 ofaButton.text = "end"
 //                showToast("Record starts.")
+//                startLocationUpdates()
+                startLocationService()
+                isLocationServiceRunning = true
+
+
             }
             else{
                 ofaButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
+//                releaseWakeLock()
                 ofaButton.text = "start"
                 ofaButtonUp = true
+                stopLocationService()
+                isLocationServiceRunning = false
                 showToast("Record ends.")
             }
-            val isDisposed = accDisposable?.isDisposed ?: true
-            if (isDisposed) {
-//                toggleButtonDown(accButton, R.string.stop_acc_stream)
-                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-                    .flatMap { settings: PolarSensorSetting ->
-                        api.startAccStreaming(deviceId, settings)
-                    }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(
-                        { polarAccelerometerData: PolarAccelerometerData ->
-                            for (data in polarAccelerometerData.samples) {
-//                                accValue.text =
-//                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
-
-                                polarTimestamp = data.timeStamp.toString()
-
-                                if (uploading) {
-//                                    var hashedACC = hashMapOf(
-//                                        "x" to data.x,
-//                                        "y" to data.y,
-//                                        "z" to data.z,
-//                                        "timeStamp" to data.timeStamp,
-//                                    )
-                                    verifyStoragePermissions(this)
-                                    var accFileName = "ACC_${deviceId}_${getCurrentDate()}.txt"
-                                    var unixTimestamp = Instant.now().toEpochMilli().toString()
-                                    var accLine = "${getCurrentTimestamp()};$polarTimestamp;${unixTimestamp};${data.x};${data.y};${data.z};"
-                                    createOrAppendFileInExternalStorage(accFileName, accLine)
-
-//                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
-//                                    accCollection.document(polarTimestamp)
-//                                        .set(hashedACC)
-//                                        //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
-//                                        .addOnFailureListener { e ->
-//                                            Log.w(
-//                                                TAG,
-//                                                "Error adding document",
-//                                                e
-//                                            )
-//                                        }
-                                }
+            mainScope.launch {
+                val isDisposed = accDisposable?.isDisposed ?: true
+                if (isDisposed) {
+                    //                toggleButtonDown(accButton, R.string.stop_acc_stream)
+                    accDisposable =
+                        requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
+                            .flatMap { settings: PolarSensorSetting ->
+                                api.startAccStreaming(deviceId, settings)
                             }
-                        },
-                        { error: Throwable ->
-//                            toggleButtonUp(accButton, R.string.start_acc_stream)
-                            Log.e(TAG, "ACC stream failed. Reason $error")
-                        },
-                        {
-                            showToast("ACC stream complete")
-                            Log.d(TAG, "ACC stream complete")
-                        }
-                    )
-            } else {
-//                toggleButtonUp(accButton, R.string.start_acc_stream)
-                // NOTE dispose will stop streaming if it is "running"
-                accDisposable?.dispose()
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                { polarAccelerometerData: PolarAccelerometerData ->
+                                    for (data in polarAccelerometerData.samples) {
+                                        //                                accValue.text =
+                                        //                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
+
+                                        //                                polarTimestamp = data.timeStamp.toString()
+
+                                        if (ofaButtonUp == false) {
+                                            //                                    var hashedACC = hashMapOf(
+                                            //                                        "x" to data.x,
+                                            //                                        "y" to data.y,
+                                            //                                        "z" to data.z,
+                                            //                                        "timeStamp" to data.timeStamp,
+                                            //                                    )
+//                                            verifyStoragePermissions(this)
+                                            var accFileName =
+                                                "ACC_${deviceId}_${getCurrentDate()}.txt"
+                                            var unixTimestamp =
+                                                Instant.now().toEpochMilli().toString()
+                                            var accLine =
+                                                "${getCurrentTimestamp()};${data.timeStamp.toString()};${unixTimestamp};${data.x};${data.y};${data.z};"
+                                            createOrAppendFileInExternalStorage(accFileName, accLine)
+
+                                            //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
+                                            //                                    accCollection.document(polarTimestamp)
+                                            //                                        .set(hashedACC)
+                                            //                                        //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
+                                            //                                        .addOnFailureListener { e ->
+                                            //                                            Log.w(
+                                            //                                                TAG,
+                                            //                                                "Error adding document",
+                                            //                                                e
+                                            //                                            )
+                                            //                                        }
+                                        }
+                                    }
+                                },
+                                { error: Throwable ->
+                                    //                            toggleButtonUp(accButton, R.string.start_acc_stream)
+                                    Log.e(TAG, "ACC stream failed. Reason $error")
+                                },
+                                {
+                                    showToast("ACC stream complete")
+                                    Log.d(TAG, "ACC stream complete")
+                                }
+                            )
+                } else {
+                    // NOTE dispose will stop streaming if it is "running"
+                    accDisposable?.dispose()
+                }
             }
 
             // PPG and location part
-            if (isDisposed) {
-//                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
-                ppgDisposable =
-                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
-                        .flatMap { settings: PolarSensorSetting ->
-                            api.startPpgStreaming(deviceId, settings)
-                        }
-                        .subscribe(
-                            { polarPpgData: PolarPpgData ->
-                                if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
-                                    uploading = true
-                                    Log.d(uploading.toString(), "record GPS status")
-                                    for (data in polarPpgData.samples) {
-//                                        runOnUiThread {
-//                                            ppgValue.text =
-//                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
-//                                        }
+            mainScope.launch {
+                val isDisposed = ppgDisposable?.isDisposed ?: true
+                if (isDisposed) {
+                    //                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
+                    ppgDisposable =
+                        requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
+                            .flatMap { settings: PolarSensorSetting ->
+                                api.startPpgStreaming(deviceId, settings)
+                            }
+                            .subscribe(
+                                { polarPpgData: PolarPpgData ->
+                                    if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
+                                        uploading = true
+                                        //                                    Log.d(uploading.toString(), "record GPS status")
+                                        if (ofaButtonUp == false) {
+                                            for (data in polarPpgData.samples) {
+                                                //                                        runOnUiThread {
+                                                //                                            ppgValue.text =
+                                                //                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
+                                                //                                        }
 
-                                        polarTimestamp = data.timeStamp.toString()
-                                        var ppgFileName = "PPG_${deviceId}_${getCurrentDate()}.txt"
-                                        var unixTimestamp = Instant.now().toEpochMilli().toString()
-                                        var ppgLine = "${getCurrentTimestamp()};${data.timeStamp};${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
-                                        createOrAppendFileInExternalStorage(ppgFileName, ppgLine)
-                                        // we might want to normalize the ppg values
-//                                        var hashedPPG = hashMapOf(
-//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-//                                            "ppg0" to data.channelSamples[0],
-//                                            "ppg1" to data.channelSamples[1],
-//                                            "ppg2" to data.channelSamples[2],
-//                                            "timeStamp" to data.timeStamp,
-//                                        )
-//                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
-//                                        ppgCollection.document(polarTimestamp)
-//                                            .set(hashedPPG)
-//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+                                                //                                            polarTimestamp = data.timeStamp.toString()
+                                                var ppgFileName =
+                                                    "PPG_${deviceId}_${getCurrentDate()}.txt"
+                                                var unixTimestamp =
+                                                    Instant.now().toEpochMilli().toString()
+                                                var ppgLine =
+                                                    "${getCurrentTimestamp()};${data.timeStamp};${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
+                                                createOrAppendFileInExternalStorage(
+                                                    ppgFileName,
+                                                    ppgLine
+                                                )
+                                                // we might want to normalize the ppg values
+                                                //                                        var hashedPPG = hashMapOf(
+                                                //                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
+                                                //                                            "ppg0" to data.channelSamples[0],
+                                                //                                            "ppg1" to data.channelSamples[1],
+                                                //                                            "ppg2" to data.channelSamples[2],
+                                                //                                            "timeStamp" to data.timeStamp,
+                                                //                                        )
+                                                //                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
+                                                //                                        ppgCollection.document(polarTimestamp)
+                                                //                                            .set(hashedPPG)
+                                                //                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
+                                            }
+                                        }
                                     }
-                                }
-                            },
-                            { error: Throwable ->
-//                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                                Log.e(TAG, "PPG stream failed. Reason $error")
-                            },
-                            { Log.d(TAG, "PPG stream complete") }
-                        )
-            } else {
-//                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-                if (uploading) {
-                    uploading = false
+                                },
+                                { error: Throwable ->
+                                    //                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+                                    Log.e(TAG, "PPG stream failed. Reason $error")
+                                },
+                                { Log.d(TAG, "PPG stream complete") }
+                            )
+                } else {
+                    //                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
+                    if (uploading) {
+                        uploading = false
+                    }
+                    Log.d(uploading.toString(), "upload status")
+                    // NOTE dispose will stop streaming if it is "running"
+                    ppgDisposable?.dispose()
                 }
-                Log.d(uploading.toString(), "upload status")
-                // NOTE dispose will stop streaming if it is "running"
-                ppgDisposable?.dispose()
             }
-
         }
 
 //        accButton.setOnClickListener {
@@ -1019,6 +1053,26 @@ class MainActivity : AppCompatActivity() {
         } else {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_CODE)
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val packageName = "com.polar.androidblesdk"
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+//                showBatteryOptimizationDialog()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val packageName = packageName
+                    val intent = Intent()
+                    val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+                    if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                        intent.action = Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        intent.data = Uri.parse("package:$packageName")
+                        startActivity(intent)
+                    }
+                }
+            } else {
+
+            }
+        }
+
     }
 
     private fun onButtonClick(position: Int) {
@@ -1046,7 +1100,7 @@ class MainActivity : AppCompatActivity() {
                 if (grantResults[index] == PackageManager.PERMISSION_GRANTED) {
                     when (permissions[index]) {
                         Manifest.permission.ACCESS_FINE_LOCATION -> {
-                            startLocationUpdates()
+//                            startLocationUpdates()
                             Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show()
                         }
                         Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
@@ -1063,6 +1117,9 @@ class MainActivity : AppCompatActivity() {
                         }
                         Manifest.permission.BLUETOOTH -> {
                             Toast.makeText(this, "Bluetooth permission granted", Toast.LENGTH_SHORT).show()
+                        }
+                        Manifest.permission.WAKE_LOCK -> {
+                            Toast.makeText(this, "Wake Lock permission granted", Toast.LENGTH_SHORT).show()
                         }
                     }
                 } else {
@@ -1085,6 +1142,9 @@ class MainActivity : AppCompatActivity() {
                         }
                         Manifest.permission.BLUETOOTH -> {
                             Toast.makeText(this, "Bluetooth permission denied", Toast.LENGTH_SHORT).show()
+                        }
+                        Manifest.permission.WAKE_LOCK -> {
+                            Toast.makeText(this, "Wake Lock permission denied", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -1110,7 +1170,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            startLocationUpdates()
+//            startLocationUpdates()
         } else {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
         }
@@ -1134,54 +1194,102 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.BLUETOOTH), PERMISSION_REQUEST_CODE)
         }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS), PERMISSION_REQUEST_CODE)
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WAKE_LOCK) != PackageManager.PERMISSION_GRANTED){
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WAKE_LOCK), PERMISSION_REQUEST_CODE)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val packageName = packageName
+            val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
+            if (pm.isIgnoringBatteryOptimizations(packageName)) {
+
+            } else {
+
+            }
+        }
     }
 
 
     public override fun onDestroy() {
         super.onDestroy()
+        if (wakeLock.isHeld) {
+            wakeLock.release()
+        }
         api.shutDown()
     }
 
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply{
-            interval = 550
-            fastestInterval = 550
+            interval = 5000
+            fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
         locationCallback = object: LocationCallback(){
             override fun onLocationResult(locationResult: LocationResult) {
                 for (location in locationResult.locations){
-                    updateUI(location)
+//                    updateUI(location)
+                    longitude = (location.longitude).toString()
+                    latitude = (location.latitude).toString()
+
+                    if (ofaButtonUp == false){
+                        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
+                        var unixTimestamp = Instant.now().toEpochMilli().toString()
+                        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
+                        createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
+                        showToast("gps stored")
+                    }
                 }
             }
         }
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
+//
+//    private fun updateUI(location: Location){
+////        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
+//        // store the value here and keep updating it
+//        // upload it to firebase when PPG button is clicked
+//        longitude = (location.longitude).toString()
+//        latitude = (location.latitude).toString()
+//
+//        if (ofaButtonUp == false){
+////        var hashedLocation = hashMapOf(
+////            "lat" to location.latitude,
+////            "lon" to location.longitude
+////        )
+//        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
+//        var unixTimestamp = Instant.now().toEpochMilli().toString()
+//        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
+//        createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
+//
+////        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
+////        gpsCollection.document(polarTimestamp)
+////            .set(hashedLocation)
+////            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+//        }
+//    }
 
-    private fun updateUI(location: Location){
-//        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
-        // store the value here and keep updating it
-        // upload it to firebase when PPG button is clicked
-        longitude = (location.longitude).toString()
-        latitude = (location.latitude).toString()
-
-        if (uploading){
-//        var hashedLocation = hashMapOf(
-//            "lat" to location.latitude,
-//            "lon" to location.longitude
-//        )
-        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-        var unixTimestamp = Instant.now().toEpochMilli().toString()
-        var gpsLine = "${getCurrentTimestamp()};${polarTimestamp};${unixTimestamp};${location.latitude};${location.longitude};"
-        createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
-
-//        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
-//        gpsCollection.document(polarTimestamp)
-//            .set(hashedLocation)
-//            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
+    private fun startLocationService() {
+        val serviceIntent = Intent(this, LocationService::class.java).apply {
+            putExtra("deviceId", deviceId)
         }
+        ContextCompat.startForegroundService(this, serviceIntent)
     }
+
+    private fun stopLocationService() {
+        val stopIntent = Intent(this, LocationService::class.java)
+        stopIntent.action = LocationService.ACTION_STOP
+        ContextCompat.startForegroundService(this, stopIntent)
+    }
+
+//    private fun stopLocationService() {
+//        val intent = Intent(this, LocationService::class.java)
+//        ContextCompat.startForegroundService(this, intent)
+//        stopService(intent)
+//        isLocationServiceRunning = false
+//    }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
         toggleButton(button, true, text)
@@ -1378,6 +1486,20 @@ class MainActivity : AppCompatActivity() {
         }
         else{
             return null
+        }
+    }
+
+    private fun acquireWakeLock() {
+        if (!wakeLock.isHeld) {
+            wakeLock.acquire()
+            Toast.makeText(this, "Wake Lock Acquired", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun releaseWakeLock() {
+        if (wakeLock.isHeld) {
+            wakeLock.release()
+            Toast.makeText(this, "Wake Lock Released", Toast.LENGTH_SHORT).show()
         }
     }
 }

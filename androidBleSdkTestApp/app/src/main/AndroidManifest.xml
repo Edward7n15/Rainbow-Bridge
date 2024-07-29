@@ -44,6 +44,10 @@
         />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
         />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+
 
     <application
         android:requestLegacyExternalStorage="true"
@@ -63,5 +67,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".LocationService"
+            android:permission="android.permission.FOREGROUND_SERVICE"
+            android:foregroundServiceType="location" />
     </application>
 </manifest>
