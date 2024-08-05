@@ -9,6 +9,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Color
 import android.location.Location
 import android.net.Uri
@@ -519,6 +520,7 @@ class MainActivity : AppCompatActivity() {
 //        }
 //        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 //            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+        //                toggleButtonUp(accButton, R.string.start_acc_stream)
 //        }
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -616,6 +618,7 @@ class MainActivity : AppCompatActivity() {
 //            items.add(deviceId)
 //            cus_adapter.notifyDataSetChanged()
 //            saveData(this, "currentID", deviceId)
+//            createOrAppendFileInExternalStorage("test.txt", "this is a test")
             val input = EditText(this)
             val dialog = AlertDialog.Builder(this)
                 .setTitle("Enter your device ID: ")
@@ -790,7 +793,7 @@ class MainActivity : AppCompatActivity() {
                                                 Instant.now().toEpochMilli().toString()
                                             var accLine =
                                                 "${getCurrentTimestamp()};${data.timeStamp.toString()};${unixTimestamp};${data.x};${data.y};${data.z};"
-                                            createOrAppendFileInExternalStorage(accFileName, accLine)
+                                            createOrAppendFileInExternalStorage(this@MainActivity, accFileName, accLine)
 
                                             //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
                                             //                                    accCollection.document(polarTimestamp)
@@ -850,10 +853,7 @@ class MainActivity : AppCompatActivity() {
                                                     Instant.now().toEpochMilli().toString()
                                                 var ppgLine =
                                                     "${getCurrentTimestamp()};${data.timeStamp};${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
-                                                createOrAppendFileInExternalStorage(
-                                                    ppgFileName,
-                                                    ppgLine
-                                                )
+                                                createOrAppendFileInExternalStorage(this@MainActivity, ppgFileName, ppgLine)
                                                 // we might want to normalize the ppg values
                                                 //                                        var hashedPPG = hashMapOf(
                                                 //                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
@@ -1053,6 +1053,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_CODE)
         }
+
+//        requestPermissions(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val packageName = "com.polar.androidblesdk"
             val pm = getSystemService(Context.POWER_SERVICE) as PowerManager
@@ -1103,12 +1106,12 @@ class MainActivity : AppCompatActivity() {
 //                            startLocationUpdates()
                             Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show()
                         }
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Write permission granted", Toast.LENGTH_SHORT).show()
-                        }
-                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Read permission granted", Toast.LENGTH_SHORT).show()
-                        }
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Write permission granted", Toast.LENGTH_SHORT).show()
+//                        }
+//                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Read permission granted", Toast.LENGTH_SHORT).show()
+//                        }
                         Manifest.permission.BLUETOOTH_SCAN -> {
                             Toast.makeText(this, "Bluetooth Scan permission granted", Toast.LENGTH_SHORT).show()
                         }
@@ -1128,12 +1131,12 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.ACCESS_FINE_LOCATION -> {
                             Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
                         }
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Write permission denied", Toast.LENGTH_SHORT).show()
-                        }
-                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Read permission denied", Toast.LENGTH_SHORT).show()
-                        }
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Write permission denied", Toast.LENGTH_SHORT).show()
+//                        }
+//                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Read permission denied", Toast.LENGTH_SHORT).show()
+//                        }
                         Manifest.permission.BLUETOOTH_SCAN -> {
                             Toast.makeText(this, "Bluetooth Scan permission denied", Toast.LENGTH_SHORT).show()
                         }
@@ -1175,13 +1178,14 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-        }
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+////            showToast("ask for write permission")
+//        }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-        }
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+//        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.BLUETOOTH_SCAN), PERMISSION_REQUEST_CODE)
@@ -1220,32 +1224,6 @@ class MainActivity : AppCompatActivity() {
         api.shutDown()
     }
 
-    private fun startLocationUpdates() {
-        val locationRequest = LocationRequest.create().apply{
-            interval = 5000
-            fastestInterval = 5000
-            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        }
-
-        locationCallback = object: LocationCallback(){
-            override fun onLocationResult(locationResult: LocationResult) {
-                for (location in locationResult.locations){
-//                    updateUI(location)
-                    longitude = (location.longitude).toString()
-                    latitude = (location.latitude).toString()
-
-                    if (ofaButtonUp == false){
-                        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-                        var unixTimestamp = Instant.now().toEpochMilli().toString()
-                        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
-                        createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
-                        showToast("gps stored")
-                    }
-                }
-            }
-        }
-        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
-    }
 //
 //    private fun updateUI(location: Location){
 ////        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
@@ -1412,30 +1390,79 @@ class MainActivity : AppCompatActivity() {
         ppgDisposable?.dispose()
     }
 
-    val REQUEST_EXTERNAL_STORAGE = 1
-    val PERMISSIONS_STORAGE = arrayOf(
-        Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE
-    )
+//    val REQUEST_EXTERNAL_STORAGE = 1
+//    val PERMISSIONS_STORAGE = arrayOf(
+//        Manifest.permission.READ_EXTERNAL_STORAGE,
+//        Manifest.permission.WRITE_EXTERNAL_STORAGE
+//    )
+//
+//    fun verifyStoragePermissions(activity: Activity) {
+//        // Check if we have write permission
+//        val permission = ActivityCompat.checkSelfPermission(
+//            activity,
+//            Manifest.permission.WRITE_EXTERNAL_STORAGE
+//        )
+//
+//        if (permission != PackageManager.PERMISSION_GRANTED) {
+//            // We don't have permission so prompt the user
+//            ActivityCompat.requestPermissions(
+//                activity,
+//                PERMISSIONS_STORAGE,
+//                REQUEST_EXTERNAL_STORAGE
+//            )
+//        }
+//    }
 
-    fun verifyStoragePermissions(activity: Activity) {
-        // Check if we have write permission
-        val permission = ActivityCompat.checkSelfPermission(
-            activity,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        )
-
-        if (permission != PackageManager.PERMISSION_GRANTED) {
-            // We don't have permission so prompt the user
-            ActivityCompat.requestPermissions(
-                activity,
-                PERMISSIONS_STORAGE,
-                REQUEST_EXTERNAL_STORAGE
-            )
+    fun deleteFileFromMediaStore(context: Context, fileUri: Uri): Boolean {
+        return try {
+            val contentResolver = context.contentResolver
+            // Use the ContentResolver to delete the file
+            val rowsDeleted = contentResolver.delete(fileUri, null, null)
+            rowsDeleted > 0
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
         }
     }
 
-    fun createOrAppendFileInExternalStorage(filename:String, line: String) {
+    fun getFileUri(context: Context, filePath: String): Uri? {
+        val projection = arrayOf(MediaStore.MediaColumns._ID)
+        val selection = MediaStore.MediaColumns.DATA + "=?"
+        val selectionArgs = arrayOf(filePath)
+        val contentUri = MediaStore.Files.getContentUri("external")
+
+        val cursor: Cursor? = context.contentResolver.query(
+            contentUri,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )
+
+        var uri: Uri? = null
+        cursor?.use {
+            if (it.moveToFirst()) {
+                val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                uri = ContentUris.withAppendedId(contentUri, id)
+            }
+        }
+
+        return uri
+    }
+    fun createOrAppendFileInExternalStorage(context: Context, filename:String, line: String) {
+//        val fileUri: Uri? = getFileUri(context, "/storage/emulated/0/Download/${filename}")
+//        if (fileUri == null) {
+//            Log.d(TAG, "File URI is null")
+//        }
+//        else {
+//            val result = deleteFileFromMediaStore(context, fileUri)
+//            if (result) {
+//                println("File deleted successfully")
+//            } else {
+//                println("Failed to delete file")
+//            }
+//        }
+
         // Check if external storage is available
         val state = Environment.getExternalStorageState()
         if (Environment.MEDIA_MOUNTED == state) {
@@ -1443,15 +1470,22 @@ class MainActivity : AppCompatActivity() {
             val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
             if (downloadsDir != null) {
                 val file = File(downloadsDir, filename)
-                try {
-                    val fos = FileOutputStream(file, true) // Open file in append mode
-                    fos.write((line + "\n").toByteArray())
-                    fos.close()
+//                if (file.exists()) {
+//                    file.delete()
+//                    Log.d(TAG, "File ${filename} deleted successfully")
+//                }
+//                else {
+//                    Log.d(TAG, "File ${filename} does not exist")
+                    try {
+                        val fos = FileOutputStream(file, true) // Open file in append mode
+                        fos.write((line + "\n").toByteArray())
+                        fos.close()
 //                    Toast.makeText(this, "File updated successfully in Downloads", Toast.LENGTH_SHORT).show()
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Error updating file", Toast.LENGTH_SHORT).show()
-                }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+//                    Toast.makeText(this, "Error updating file", Toast.LENGTH_SHORT).show()
+                    }
+//                }
             } else {
                 Toast.makeText(this, "Downloads directory not available", Toast.LENGTH_SHORT).show()
             }

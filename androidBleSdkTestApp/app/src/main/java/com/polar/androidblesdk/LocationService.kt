@@ -97,7 +97,7 @@ class LocationService : Service() {
             override fun onLocationResult(locationResult: LocationResult) {
                 for (location in locationResult.locations) {
                     logLocation(location)
-                    writeLocationToFile(location)
+//                    writeLocationToFile(location)
                 }
             }
         }
@@ -108,7 +108,7 @@ class LocationService : Service() {
 
         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
         var unixTimestamp = Instant.now().toEpochMilli().toString()
-        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
+        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};\n"
 
         val logFile = File(downloadsDir, gpsFileName)
 
