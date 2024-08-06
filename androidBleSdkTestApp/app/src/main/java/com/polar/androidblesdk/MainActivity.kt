@@ -620,10 +620,10 @@ class MainActivity : AppCompatActivity() {
             val dialog = AlertDialog.Builder(this)
                 .setTitle("Enter your device ID: ")
                 .setView(input)
-                .setNeutralButton("clear the list"){dialog, which ->
+//                .setNeutralButton("clear the list"){dialog, which ->
 //                    items.clear()
 //                    cus_adapter.notifyDataSetChanged()
-                }
+//                }
                 .setPositiveButton("OK") { dialog, which ->
                     deviceId = input.text.toString()
 //                    items.add(deviceId)
@@ -672,7 +672,6 @@ class MainActivity : AppCompatActivity() {
 //                broadcastDisposable.dispose()
 //            }
 //        }
-
         connectButton.text = getString(R.string.connect_to_device, deviceId)
         connectButton.setOnClickListener {
             try {
@@ -688,6 +687,7 @@ class MainActivity : AppCompatActivity() {
                     "connect"
                 }
                 Log.e(TAG, "Failed to $attempt. Reason $polarInvalidArgument ")
+                showToast("Failed to $attempt. Please contact a researcher to support.")
             }
         }
 
