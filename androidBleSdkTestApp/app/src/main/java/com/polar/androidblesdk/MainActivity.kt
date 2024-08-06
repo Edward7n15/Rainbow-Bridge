@@ -624,6 +624,15 @@ class MainActivity : AppCompatActivity() {
 //                    items.clear()
 //                    cus_adapter.notifyDataSetChanged()
 //                }
+                .setNeutralButton("Delete today's data") { dialog, which ->
+                    deleteFileFromExternalStorage("ACC_${deviceId}_${getCurrentDate()}.txt")
+                    deleteFileFromExternalStorage("PPG_${deviceId}_${getCurrentDate()}.txt")
+                    deleteFileFromExternalStorage("GPS_${deviceId}_${getCurrentDate()}.txt")
+                }
+                .setNeutralButton("Delete all data") { dialog, which ->
+                    // TODO: delete all data no matter what date it is and what device it is
+                    deleteAllDataForDevice()
+                }
                 .setPositiveButton("OK") { dialog, which ->
                     deviceId = input.text.toString()
 //                    items.add(deviceId)
@@ -1460,6 +1469,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun deleteFileFromExternalStorage(filename: String) {
+        // Check if external storage is available
+        val state = Environment.getExternalStorageState()
+        if (Environment.MEDIA_MOUNTED == state || Environment.MEDIA_MOUNTED_READ_ONLY == state) {
+            // Get the Downloads directory
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadsDir != null) {
+                val file = File(downloadsDir, filename)
+                if (file.exists()) {
+                    val deleted = file.delete()
+                    if (deleted) {
+                        Toast.makeText(this, "File deleted successfully from Downloads", Toast.LENGTH_SHORT).show()
+                    } else {
+                        Toast.makeText(this, "Error deleting file", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "File not found in Downloads", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(this, "Downloads directory not available", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "External storage is not mounted", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     fun getCurrentTimestamp(): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
         return dateFormat.format(Date())
@@ -1501,5 +1536,33 @@ class MainActivity : AppCompatActivity() {
             wakeLock.release()
             Toast.makeText(this, "Wake Lock Released", Toast.LENGTH_SHORT).show()
         }
+    }
+    fun deleteAllDataForDevice() {
+        val state = Environment.getExternalStorageState()
+        if (Environment.MEDIA_MOUNTED == state || Environment.MEDIA_MOUNTED_READ_ONLY == state) {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (downloadsDir != null) {
+                val files = downloadsDir.listFiles()
+                if (files != null) {
+                    for (file in files) {
+                        if (file.name.startsWith("ACC_") ||
+                            file.name.startsWith("PPG_") ||
+                            file.name.startsWith("GPS_")) {
+                            val deleted = file.delete()
+                            if (deleted) {
+                                Toast.makeText(this, "${file.name} deleted successfully", Toast.LENGTH_SHORT).show()
+                            } else {
+                                Toast.makeText(this, "Error deleting ${file.name}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(this, "Downloads directory not available", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "External storage is not mounted", Toast.LENGTH_SHORT).show()
+        }
+        showToast("Process finished.")
     }
 }
