@@ -1103,12 +1103,12 @@ class MainActivity : AppCompatActivity() {
 //                            startLocationUpdates()
                             Toast.makeText(this, "Location permission granted", Toast.LENGTH_SHORT).show()
                         }
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Write permission granted", Toast.LENGTH_SHORT).show()
-                        }
-                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Read permission granted", Toast.LENGTH_SHORT).show()
-                        }
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Write permission granted", Toast.LENGTH_SHORT).show()
+//                        }
+//                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Read permission granted", Toast.LENGTH_SHORT).show()
+//                        }
                         Manifest.permission.BLUETOOTH_SCAN -> {
                             Toast.makeText(this, "Bluetooth Scan permission granted", Toast.LENGTH_SHORT).show()
                         }
@@ -1128,12 +1128,12 @@ class MainActivity : AppCompatActivity() {
                         Manifest.permission.ACCESS_FINE_LOCATION -> {
                             Toast.makeText(this, "Location permission denied", Toast.LENGTH_SHORT).show()
                         }
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Write permission denied", Toast.LENGTH_SHORT).show()
-                        }
-                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
-                            Toast.makeText(this, "Read permission denied", Toast.LENGTH_SHORT).show()
-                        }
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Write permission denied", Toast.LENGTH_SHORT).show()
+//                        }
+//                        Manifest.permission.READ_EXTERNAL_STORAGE -> {
+//                            Toast.makeText(this, "Read permission denied", Toast.LENGTH_SHORT).show()
+//                        }
                         Manifest.permission.BLUETOOTH_SCAN -> {
                             Toast.makeText(this, "Bluetooth Scan permission denied", Toast.LENGTH_SHORT).show()
                         }
@@ -1175,13 +1175,13 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-        }
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+//        }
+//
+//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
+//        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.BLUETOOTH_SCAN), PERMISSION_REQUEST_CODE)
@@ -1237,7 +1237,7 @@ class MainActivity : AppCompatActivity() {
                     if (ofaButtonUp == false){
                         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
                         var unixTimestamp = Instant.now().toEpochMilli().toString()
-                        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
+                        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};\n"
                         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
                         showToast("gps stored")
                     }
