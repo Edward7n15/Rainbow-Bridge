@@ -624,11 +624,11 @@ class MainActivity : AppCompatActivity() {
 //                    items.clear()
 //                    cus_adapter.notifyDataSetChanged()
 //                }
-                .setNeutralButton("Delete today's data") { dialog, which ->
-                    deleteFileFromExternalStorage("ACC_${deviceId}_${getCurrentDate()}.txt")
-                    deleteFileFromExternalStorage("PPG_${deviceId}_${getCurrentDate()}.txt")
-                    deleteFileFromExternalStorage("GPS_${deviceId}_${getCurrentDate()}.txt")
-                }
+//                .setNeutralButton("Delete today's data") { dialog, which ->
+//                    deleteFileFromExternalStorage("ACC_${deviceId}_${getCurrentDate()}.txt")
+//                    deleteFileFromExternalStorage("PPG_${deviceId}_${getCurrentDate()}.txt")
+//                    deleteFileFromExternalStorage("GPS_${deviceId}_${getCurrentDate()}.txt")
+//                }
                 .setNeutralButton("Delete all data") { dialog, which ->
                     // TODO: delete all data no matter what date it is and what device it is
                     deleteAllDataForDevice()
