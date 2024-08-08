@@ -244,7 +244,7 @@ class MainActivity : AppCompatActivity() {
                 )
         }
         else{
-            lifecycle.coroutineScope.launch{driveSetUp()}
+            lifecycle.coroutineScope.launch{driveSetUp(deviceId, getCurrentDate())}
         }
     }
 
@@ -269,7 +269,7 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
-    private suspend fun driveSetUp(){
+    private suspend fun driveSetUp(dId: String, date: String){
         showToast("Setting up Google Drive...")
         uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
@@ -338,9 +338,9 @@ class MainActivity : AppCompatActivity() {
 //                val createFileJob = async { createFileInInternalStorage(receivedText) }
 //                val file = createFileJob.await()
                 val fileNames = listOf(
-                    "PPG_${deviceId}_${getCurrentDate()}.txt",
-                    "ACC_${deviceId}_${getCurrentDate()}.txt",
-                    "GPS_${deviceId}_${getCurrentDate()}.txt",
+                    "PPG_${dId}_${date}.txt",
+                    "ACC_${dId}_${date}.txt",
+                    "GPS_${dId}_${date}.txt",
                     )
                 var allGood = true
                 for (fileName in fileNames) {
