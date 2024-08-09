@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+
         <Button
             android:id="@+id/prompt_ID_button"
             android:layout_width="match_parent"
@@ -18,12 +19,30 @@
             android:text="enter your device id"
             android:textSize="28sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/white" />
+
         <Button
             android:id="@+id/connect_button"
             android:layout_width="match_parent"
-            android:layout_height="228dp"
-            android:textSize="28sp"
-            android:text="@string/connect_to_device" />
+            android:layout_height="204dp"
+            android:text="@string/connect_to_device"
+            android:textSize="28sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/white" />
 
         <Button
             android:id="@+id/one_for_all_button"
@@ -32,11 +51,36 @@
             android:text="Start"
             android:textSize="28sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/white" />
+
         <Button
             android:id="@+id/upload_button"
             android:layout_width="match_parent"
+            android:layout_height="204dp"
+            android:text="Upload for today"
+            android:textSize="28sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="2dp"
+            android:background="@android:color/white" />
+
+        <Button
+            android:id="@+id/tools_button"
+            android:layout_width="match_parent"
             android:layout_height="179dp"
-            android:text="Upload"
+            android:text="tools"
             android:textSize="28sp" />
 
 <!--        <ListView-->
@@ -90,25 +134,7 @@
 <!--            android:layout_height="wrap_content"-->
 <!--            android:text="@string/listen_broadcast" />-->
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="2dp"
-            android:background="@android:color/white" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="2dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="2dp"
-            android:background="@android:color/white" />
-
-<!--        <Button-->
+        <!--        <Button-->
 <!--            android:id="@+id/acc_button"-->
 <!--            android:layout_width="match_parent"-->
 <!--            android:layout_height="wrap_content"-->

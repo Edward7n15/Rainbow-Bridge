@@ -126,6 +126,7 @@ class MainActivity : AppCompatActivity() {
     // ATTENTION! Replace with the device ID from your device.
 
     private var deviceId = "unknown"
+    private var selectedDate = ""
     private val api: PolarBleApi by lazy {
         // Notice all features are enabled
         PolarBleApiDefaultImpl.defaultImplementation(
@@ -196,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var promptID: Button
     private lateinit var uploadButton: Button
     private lateinit var wakeLock: PowerManager.WakeLock
+    private lateinit var toolsButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -220,7 +222,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 val task = GoogleSignIn.getSignedInAccountFromIntent(data)
                 task.getResult(ApiException::class.java)
-                checkForGooglePermissions()
+                checkForGooglePermissions(deviceId, getCurrentDate())
             }
             catch(e: ApiException){
 
@@ -228,7 +230,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForGooglePermissions(){
+    private var specLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ result ->
+        if (result.resultCode == Activity.RESULT_OK){
+            val data: Intent? = result.data
+            try {
+                val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+                task.getResult(ApiException::class.java)
+                checkForGooglePermissions(deviceId, selectedDate)
+            }
+            catch(e: ApiException){
+
+            }
+        }
+    }
+
+    private fun checkForGooglePermissions(sensorId: String, date: String){
         showToast("Checking Permissions...")
         if (!GoogleSignIn.hasPermissions(
             GoogleSignIn.getLastSignedInAccount(this),
@@ -244,7 +260,7 @@ class MainActivity : AppCompatActivity() {
                 )
         }
         else{
-            lifecycle.coroutineScope.launch{driveSetUp()}
+            lifecycle.coroutineScope.launch{driveSetUp(sensorId, date)}
         }
     }
 
@@ -269,7 +285,7 @@ class MainActivity : AppCompatActivity() {
         return null
     }
 
-    private suspend fun driveSetUp(){
+    private suspend fun driveSetUp(sensorId: String, date: String){
         showToast("Setting up Google Drive...")
         uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
         val myAccount = GoogleSignIn.getLastSignedInAccount(this)
@@ -338,9 +354,9 @@ class MainActivity : AppCompatActivity() {
 //                val createFileJob = async { createFileInInternalStorage(receivedText) }
 //                val file = createFileJob.await()
                 val fileNames = listOf(
-                    "PPG_${deviceId}_${getCurrentDate()}.txt",
-                    "ACC_${deviceId}_${getCurrentDate()}.txt",
-                    "GPS_${deviceId}_${getCurrentDate()}.txt",
+                    "PPG_${sensorId}_${date}.txt",
+                    "ACC_${sensorId}_${date}.txt",
+                    "GPS_${sensorId}_${date}.txt",
                     )
                 var allGood = true
                 for (fileName in fileNames) {
@@ -527,6 +543,7 @@ class MainActivity : AppCompatActivity() {
         promptID = findViewById(R.id.prompt_ID_button)
         deviceId = getData(this, "currentID", "unknown")
         uploadButton = findViewById(R.id.upload_button)
+        toolsButton = findViewById(R.id.tools_button)
 //        isLocationServiceRunning = false
 //        broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
@@ -611,6 +628,52 @@ class MainActivity : AppCompatActivity() {
 //        val cus_adapter = CustomAdapter(this, items) { position -> onButtonClick(position) }
 //        listView.adapter = cus_adapter
 
+        toolsButton.setOnClickListener{
+            val dialog = AlertDialog.Builder(this)
+                .setTitle("Choose an option:")
+                .setNegativeButton("Upload a specific date") { dialog, which ->
+                    val input = EditText(this)
+                    val dateDialog = AlertDialog.Builder(this@MainActivity)
+                        .setTitle("Enter the date you want to upload in this format: YYYY-MM-DD")
+                        .setView(input)
+                        .setPositiveButton("OK") { dateDialog, which ->
+                            selectedDate = input.text.toString()
+                            isFileRead = false
+                            val gso = GoogleSignInOptions
+                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                .requestEmail()
+                                .build()
+
+                            googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
+
+                            val signInIntent = googleSignInClient?.signInIntent
+                            specLauncher.launch(signInIntent)
+                        }
+                        .setNegativeButton("Cancel") { dateDialog, which ->
+                            dateDialog.cancel()
+                        }
+                        .create()
+                    dateDialog.show()
+                }
+                .setPositiveButton("Delete all data") { dialog, which ->
+                    val ensureDialog = AlertDialog.Builder(this)
+                        .setTitle("Are you sure?:")
+                        .setPositiveButton("Yes, I want to DELETE all data.") { ensureDialog, which ->
+                            deleteAllDataForDevice()
+                        }
+                        .setNegativeButton("No, I want to KEEP the data.") { ensureDialog, which ->
+                            ensureDialog.cancel()
+                        }
+                        .create()
+                    ensureDialog.show()
+                }
+                .setNeutralButton("Cancel") { dialog, which ->
+                    dialog.cancel()
+                }
+                .create()
+            dialog.show()
+        }
+
         promptID.setOnClickListener {
 //            connectButton.text = getString(R.string.connect_to_device, deviceId)
 //            items.add(deviceId)
@@ -629,10 +692,10 @@ class MainActivity : AppCompatActivity() {
 //                    deleteFileFromExternalStorage("PPG_${deviceId}_${getCurrentDate()}.txt")
 //                    deleteFileFromExternalStorage("GPS_${deviceId}_${getCurrentDate()}.txt")
 //                }
-                .setNeutralButton("Delete all data") { dialog, which ->
+//                .setNeutralButton("Delete all data") { dialog, which ->
                     // TODO: delete all data no matter what date it is and what device it is
-                    deleteAllDataForDevice()
-                }
+//                    deleteAllDataForDevice()
+//                }
                 .setPositiveButton("OK") { dialog, which ->
                     deviceId = input.text.toString()
 //                    items.add(deviceId)
