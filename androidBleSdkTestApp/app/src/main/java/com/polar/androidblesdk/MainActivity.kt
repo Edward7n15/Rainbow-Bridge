@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity() {
         }
         else{
             withContext(Dispatchers.Default){
-                val folderName = "${deviceId}_${getCurrentDate()}"
+                val folderName = "${sensorId}_${date}"
                 val googleDriveFileHolderJob = async {
                     createFolder(googleDriveService, folderName, null)
                 }
