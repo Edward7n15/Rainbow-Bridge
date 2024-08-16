@@ -197,7 +197,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var promptID: Button
     private lateinit var uploadButton: Button
     private lateinit var wakeLock: PowerManager.WakeLock
-    private lateinit var toolsButton: Button
+//    private lateinit var toolsButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -543,7 +543,7 @@ class MainActivity : AppCompatActivity() {
         promptID = findViewById(R.id.prompt_ID_button)
         deviceId = getData(this, "currentID", "unknown")
         uploadButton = findViewById(R.id.upload_button)
-        toolsButton = findViewById(R.id.tools_button)
+//        toolsButton = findViewById(R.id.tools_button)
 //        isLocationServiceRunning = false
 //        broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
@@ -628,51 +628,51 @@ class MainActivity : AppCompatActivity() {
 //        val cus_adapter = CustomAdapter(this, items) { position -> onButtonClick(position) }
 //        listView.adapter = cus_adapter
 
-        toolsButton.setOnClickListener{
-            val dialog = AlertDialog.Builder(this)
-                .setTitle("Choose an option:")
-                .setNegativeButton("Upload a specific date") { dialog, which ->
-                    val input = EditText(this)
-                    val dateDialog = AlertDialog.Builder(this@MainActivity)
-                        .setTitle("Enter the date you want to upload in this format: YYYY-MM-DD")
-                        .setView(input)
-                        .setPositiveButton("OK") { dateDialog, which ->
-                            selectedDate = input.text.toString()
-                            isFileRead = false
-                            val gso = GoogleSignInOptions
-                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                                .requestEmail()
-                                .build()
-
-                            googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
-
-                            val signInIntent = googleSignInClient?.signInIntent
-                            specLauncher.launch(signInIntent)
-                        }
-                        .setNegativeButton("Cancel") { dateDialog, which ->
-                            dateDialog.cancel()
-                        }
-                        .create()
-                    dateDialog.show()
-                }
-                .setPositiveButton("Delete all data") { dialog, which ->
-                    val ensureDialog = AlertDialog.Builder(this)
-                        .setTitle("Are you sure?:")
-                        .setPositiveButton("Yes, I want to DELETE all data.") { ensureDialog, which ->
-                            deleteAllDataForDevice()
-                        }
-                        .setNegativeButton("No, I want to KEEP the data.") { ensureDialog, which ->
-                            ensureDialog.cancel()
-                        }
-                        .create()
-                    ensureDialog.show()
-                }
-                .setNeutralButton("Cancel") { dialog, which ->
-                    dialog.cancel()
-                }
-                .create()
-            dialog.show()
-        }
+//        toolsButton.setOnClickListener{
+//            val dialog = AlertDialog.Builder(this)
+//                .setTitle("Choose an option:")
+//                .setNegativeButton("Upload a specific date") { dialog, which ->
+//                    val input = EditText(this)
+//                    val dateDialog = AlertDialog.Builder(this@MainActivity)
+//                        .setTitle("Enter the date you want to upload in this format: YYYY-MM-DD")
+//                        .setView(input)
+//                        .setPositiveButton("OK") { dateDialog, which ->
+//                            selectedDate = input.text.toString()
+//                            isFileRead = false
+//                            val gso = GoogleSignInOptions
+//                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                                .requestEmail()
+//                                .build()
+//
+//                            googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
+//
+//                            val signInIntent = googleSignInClient?.signInIntent
+//                            specLauncher.launch(signInIntent)
+//                        }
+//                        .setNegativeButton("Cancel") { dateDialog, which ->
+//                            dateDialog.cancel()
+//                        }
+//                        .create()
+//                    dateDialog.show()
+//                }
+//                .setPositiveButton("Delete all data") { dialog, which ->
+//                    val ensureDialog = AlertDialog.Builder(this)
+//                        .setTitle("Are you sure?:")
+//                        .setPositiveButton("Yes, I want to DELETE all data.") { ensureDialog, which ->
+//                            deleteAllDataForDevice()
+//                        }
+//                        .setNegativeButton("No, I want to KEEP the data.") { ensureDialog, which ->
+//                            ensureDialog.cancel()
+//                        }
+//                        .create()
+//                    ensureDialog.show()
+//                }
+//                .setNeutralButton("Cancel") { dialog, which ->
+//                    dialog.cancel()
+//                }
+//                .create()
+//            dialog.show()
+//        }
 
         promptID.setOnClickListener {
 //            connectButton.text = getString(R.string.connect_to_device, deviceId)
@@ -687,11 +687,51 @@ class MainActivity : AppCompatActivity() {
 //                    items.clear()
 //                    cus_adapter.notifyDataSetChanged()
 //                }
-//                .setNeutralButton("Delete today's data") { dialog, which ->
-//                    deleteFileFromExternalStorage("ACC_${deviceId}_${getCurrentDate()}.txt")
-//                    deleteFileFromExternalStorage("PPG_${deviceId}_${getCurrentDate()}.txt")
-//                    deleteFileFromExternalStorage("GPS_${deviceId}_${getCurrentDate()}.txt")
-//                }
+                .setNeutralButton("tools") { dialog, which ->
+                    val toolDialog = AlertDialog.Builder(this)
+                    .setTitle("Choose an option:")
+                    .setNegativeButton("Upload a specific date") { toolDialog, which ->
+                        val input = EditText(this)
+                        val dateDialog = AlertDialog.Builder(this@MainActivity)
+                            .setTitle("Enter the date you want to upload in this format: YYYY-MM-DD")
+                            .setView(input)
+                            .setPositiveButton("OK") { dateDialog, which ->
+                                selectedDate = input.text.toString()
+                                isFileRead = false
+                                val gso = GoogleSignInOptions
+                                    .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                                    .requestEmail()
+                                    .build()
+
+                                googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
+
+                                val signInIntent = googleSignInClient?.signInIntent
+                                specLauncher.launch(signInIntent)
+                            }
+                            .setNegativeButton("Cancel") { dateDialog, which ->
+                                dateDialog.cancel()
+                            }
+                            .create()
+                        dateDialog.show()
+                    }
+                    .setPositiveButton("Delete all data") { toolDialog, which ->
+                        val ensureDialog = AlertDialog.Builder(this)
+                            .setTitle("Are you sure?:")
+                            .setPositiveButton("Yes, I want to DELETE all data.") { ensureDialog, which ->
+                                deleteAllDataForDevice()
+                            }
+                            .setNegativeButton("No, I want to KEEP the data.") { ensureDialog, which ->
+                                ensureDialog.cancel()
+                            }
+                            .create()
+                        ensureDialog.show()
+                    }
+                    .setNeutralButton("Cancel") { toolDialog, which ->
+                        toolDialog.cancel()
+                    }
+                    .create()
+                toolDialog.show()
+                }
 //                .setNeutralButton("Delete all data") { dialog, which ->
                     // TODO: delete all data no matter what date it is and what device it is
 //                    deleteAllDataForDevice()

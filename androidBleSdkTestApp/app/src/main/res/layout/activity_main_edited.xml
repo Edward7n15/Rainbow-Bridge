@@ -64,7 +64,7 @@
             android:id="@+id/upload_button"
             android:layout_width="match_parent"
             android:layout_height="204dp"
-            android:text="Upload for today"
+            android:text="Upload"
             android:textSize="28sp" />
 
         <View
@@ -76,12 +76,12 @@
             android:layout_marginBottom="2dp"
             android:background="@android:color/white" />
 
-        <Button
-            android:id="@+id/tools_button"
-            android:layout_width="match_parent"
-            android:layout_height="179dp"
-            android:text="tools"
-            android:textSize="28sp" />
+<!--        <Button-->
+<!--            android:id="@+id/tools_button"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="179dp"-->
+<!--            android:text="tools"-->
+<!--            android:textSize="28sp" />-->
 
 <!--        <ListView-->
 <!--            android:id="@+id/devices_list"-->
