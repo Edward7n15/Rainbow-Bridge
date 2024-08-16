@@ -901,7 +901,7 @@ class MainActivity : AppCompatActivity() {
                                             var unixTimestamp =
                                                 Instant.now().toEpochMilli().toString()
                                             var accLine =
-                                                "${getCurrentTimestamp()};${data.timeStamp.toString()};${unixTimestamp};${data.x};${data.y};${data.z};"
+                                                "${unixTimestamp};${data.x};${data.y};${data.z};"
                                             createOrAppendFileInExternalStorage(accFileName, accLine)
 
                                             //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
@@ -961,7 +961,7 @@ class MainActivity : AppCompatActivity() {
                                                 var unixTimestamp =
                                                     Instant.now().toEpochMilli().toString()
                                                 var ppgLine =
-                                                    "${getCurrentTimestamp()};${data.timeStamp};${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
+                                                    "${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
                                                 createOrAppendFileInExternalStorage(
                                                     ppgFileName,
                                                     ppgLine
@@ -1349,7 +1349,7 @@ class MainActivity : AppCompatActivity() {
                     if (ofaButtonUp == false){
                         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
                         var unixTimestamp = Instant.now().toEpochMilli().toString()
-                        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};\n"
+                        var gpsLine = "${unixTimestamp};${location.latitude};${location.longitude};\n"
                         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
                         showToast("gps stored")
                     }
