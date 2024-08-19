@@ -16,12 +16,16 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
 import java.util.Locale
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 class LocationService : Service() {
 
@@ -150,6 +154,23 @@ class LocationService : Service() {
     fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return dateFormat.format(Date())
+    }
+
+    fun compressFile(fileName: String) {
+        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val inputFile = File(downloadsDirectory, fileName)
+        val outputFile = File(downloadsDirectory, "$fileName.zip")
+
+        ZipOutputStream(FileOutputStream(outputFile)).use { zos ->
+            FileInputStream(inputFile).use { fis ->
+                val zipEntry = ZipEntry(inputFile.name)
+                zos.putNextEntry(zipEntry)
+                fis.copyTo(zos, bufferSize = 1024)
+                zos.closeEntry()
+            }
+        }
+
+        println("File compressed to ${outputFile.absolutePath}")
     }
 
     companion object {

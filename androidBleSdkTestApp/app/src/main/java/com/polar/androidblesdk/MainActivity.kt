@@ -77,6 +77,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.FileReader
@@ -84,6 +85,8 @@ import java.io.IOException
 import java.io.OutputStream
 import java.text.SimpleDateFormat
 import java.time.Instant
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 //import com.google.android.gms.auth.api.signin.GoogleSignIn
 //import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -355,9 +358,9 @@ class MainActivity : AppCompatActivity() {
 //                val createFileJob = async { createFileInInternalStorage(receivedText) }
 //                val file = createFileJob.await()
                 val fileNames = listOf(
-                    "PPG_${sensorId}_${date}.txt",
-                    "ACC_${sensorId}_${date}.txt",
-                    "GPS_${sensorId}_${date}.txt",
+                    "PPG_${sensorId}_${date}.zip",
+                    "ACC_${sensorId}_${date}.zip",
+                    "GPS_${sensorId}_${date}.zip",
                     )
                 var allGood = true
                 for (fileName in fileNames) {
@@ -860,6 +863,15 @@ class MainActivity : AppCompatActivity() {
                 stopLocationService()
                 isLocationServiceRunning = false
                 showToast("Record ends.")
+                try{
+                    compressFile("ACC_${deviceId}_${getCurrentDate()}.txt")
+                    compressFile("PPG_${deviceId}_${getCurrentDate()}.txt")
+                    compressFile("GPS_${deviceId}_${getCurrentDate()}.txt")
+                    showToast("Files compressed")
+                }
+                catch(e: Exception){
+                    showToast("Error compressing file")
+                }
             }
             mainScope.launch {
                 val isDisposed = accDisposable?.isDisposed ?: true
@@ -1673,5 +1685,22 @@ class MainActivity : AppCompatActivity() {
             calendar.get(Calendar.DAY_OF_MONTH)
         )
         datePickerDialog.show()
+    }
+
+    fun compressFile(fileName: String) {
+        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val inputFile = File(downloadsDirectory, fileName)
+        val outputFile = File(downloadsDirectory, "${fileName.replace(".txt", ".zip")}")
+
+        ZipOutputStream(FileOutputStream(outputFile)).use { zos ->
+            FileInputStream(inputFile).use { fis ->
+                val zipEntry = ZipEntry(inputFile.name)
+                zos.putNextEntry(zipEntry)
+                fis.copyTo(zos, bufferSize = 1024)
+                zos.closeEntry()
+            }
+        }
+
+        println("File compressed to ${outputFile.absolutePath}")
     }
 }
