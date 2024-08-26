@@ -26,6 +26,8 @@ import java.util.Date
 import java.util.Locale
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
 
 class LocationService : Service() {
 
@@ -111,8 +113,9 @@ class LocationService : Service() {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-        var unixTimestamp = Instant.now().toEpochMilli().toString()
-        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};\n"
+//        var unixTimestamp = Instant.now().toEpochMilli().toString()
+        var unixTimestamp = getNano()
+        var gpsLine = "${unixTimestamp};${location.latitude};${location.longitude};\n"
 
         val logFile = File(downloadsDir, gpsFileName)
 
@@ -123,6 +126,14 @@ class LocationService : Service() {
         } catch (e: IOException) {
             Log.e("LocationService", "Error writing to file", e)
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun getNano(): String{
+        var nanoTime = TimeSource.Monotonic.markNow().elapsedNow().inWholeNanoseconds
+        var milli = Instant.now().toEpochMilli()
+        var rlt = milli * 1_000_000 + nanoTime
+        return rlt.toString()
     }
 
     private fun startLocationUpdates() {

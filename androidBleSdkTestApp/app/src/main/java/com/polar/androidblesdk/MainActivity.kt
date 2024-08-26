@@ -87,6 +87,9 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
 
 //import com.google.android.gms.auth.api.signin.GoogleSignIn
 //import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -364,7 +367,12 @@ class MainActivity : AppCompatActivity() {
                     )
                 var allGood = true
                 for (fileName in fileNames) {
-                    val file = getFileFromDownloads(fileName)
+                    var file = getFileFromDownloads(fileName)
+                    if (file == null) {
+                        val originalFileName = fileName.replace(".zip", ".txt")
+                        compressFile(originalFileName)
+                        file = getFileFromDownloads(fileName) // Try getting the compressed file again
+                    }
                     if (file !== null) {
                         val uploadFileJob = async {
                             uploadFile(
@@ -526,6 +534,7 @@ class MainActivity : AppCompatActivity() {
         return result.files
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main_edited)
@@ -902,7 +911,8 @@ class MainActivity : AppCompatActivity() {
                                             var accFileName =
                                                 "ACC_${deviceId}_${getCurrentDate()}.txt"
                                             var unixTimestamp =
-                                                Instant.now().toEpochMilli().toString()
+//                                                Instant.now().nano.toString()
+                                                getNano()
                                             var accLine =
                                                 "${unixTimestamp};${data.x};${data.y};${data.z};"
                                             createOrAppendFileInExternalStorage(accFileName, accLine)
@@ -961,8 +971,9 @@ class MainActivity : AppCompatActivity() {
                                                 //                                            polarTimestamp = data.timeStamp.toString()
                                                 var ppgFileName =
                                                     "PPG_${deviceId}_${getCurrentDate()}.txt"
-                                                var unixTimestamp =
-                                                    Instant.now().toEpochMilli().toString()
+//                                                var unixTimestamp =
+//                                                    Instant.now().nano.toString()
+                                                var unixTimestamp = getNano()
                                                 var ppgLine =
                                                     "${unixTimestamp};${data.channelSamples[0]};${data.channelSamples[1]};${data.channelSamples[2]};${data.channelSamples[3]};"
                                                 createOrAppendFileInExternalStorage(
@@ -1335,6 +1346,7 @@ class MainActivity : AppCompatActivity() {
         api.shutDown()
     }
 
+    @OptIn(ExperimentalTime::class)
     private fun startLocationUpdates() {
         val locationRequest = LocationRequest.create().apply{
             interval = 5000
@@ -1351,7 +1363,8 @@ class MainActivity : AppCompatActivity() {
 
                     if (ofaButtonUp == false){
                         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-                        var unixTimestamp = Instant.now().toEpochMilli().toString()
+//                        var unixTimestamp = Instant.now().nano.toString()
+                        var unixTimestamp = getNano()
                         var gpsLine = "${unixTimestamp};${location.latitude};${location.longitude};\n"
                         createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
                         showToast("gps stored")
@@ -1601,11 +1614,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun getCurrentTimestamp(): String {
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-        return dateFormat.format(Date())
-    }
-
     fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return dateFormat.format(Date())
@@ -1702,5 +1710,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         println("File compressed to ${outputFile.absolutePath}")
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun getNano(): String{
+        var nanoTime = TimeSource.Monotonic.markNow().elapsedNow().inWholeNanoseconds
+        var milli = Instant.now().toEpochMilli()
+        var rlt = milli * 1_000_000 + nanoTime
+        return rlt.toString()
     }
 }
