@@ -90,6 +90,7 @@ import java.util.zip.ZipOutputStream
 import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
+import com.google.firebase.storage.FirebaseStorage
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -648,18 +649,48 @@ class MainActivity : AppCompatActivity() {
         }
 
         uploadButton.setOnClickListener{
-            uploadButtonUp = false
-            // resumable upload PPG.txt to google drive
-            isFileRead = false
-            val gso = GoogleSignInOptions
-                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build()
+//            uploadButtonUp = false
+//            // resumable upload PPG.txt to google drive
+//            isFileRead = false
+//            val gso = GoogleSignInOptions
+//                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                .requestEmail()
+//                .build()
+//
+//            googleSignInClient = GoogleSignIn.getClient(this, gso)
+//
+//            val signInIntent = googleSignInClient?.signInIntent
+//            launcher.launch(signInIntent)
+            showToast("Setting up Google Drive...")
+            uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
 
-            googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-            val signInIntent = googleSignInClient?.signInIntent
-            launcher.launch(signInIntent)
+            val fileNames = listOf(
+                "PPG_${deviceId}_${getCurrentDate()}.zip",
+                "ACC_${deviceId}_${getCurrentDate()}.zip",
+                "GPS_${deviceId}_${getCurrentDate()}.zip",
+            )
+            var allGood = true
+            for (fileName in fileNames) {
+                var file = getFileFromDownloads(fileName)
+                if (file == null) {
+                    val originalFileName = fileName.replace(".zip", ".txt")
+                    compressFile(originalFileName)
+                    file = getFileFromDownloads(fileName) // Try getting the compressed file again
+                }
+                if (file !== null){
+                    try {
+                        firestorageUpload(fileName)
+                    }
+                    catch (e: Exception){
+                        showToast("Can't find ${fileName}")
+                        allGood = false
+                    }
+                }
+                if (allGood){
+                    showToast("Success! Thank you for uploading data today!")
+                }
+                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
+            }
         }
 
         connectButton.text = getString(R.string.connect_to_device, deviceId)
@@ -1343,5 +1374,24 @@ class MainActivity : AppCompatActivity() {
         var milli = Instant.now().toEpochMilli()
         var rlt = milli * 1_000_000 + nanoTime
         return rlt.toString()
+    }
+
+    fun firestorageUpload(fileName: String){
+        val downloadsPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path
+        val file = File(downloadsPath, fileName)
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.reference
+        val fileRef = storageRef.child("${deviceId}_${getCurrentDate()}/${file.name}")
+        val fileUri = Uri.fromFile(file)
+
+        fileRef.putFile(fileUri)
+            .addOnSuccessListener {
+                // Handle successful uploads
+                showToast("File uploaded successfully to Firebase Storage")
+            }
+            .addOnFailureListener {
+                // Handle unsuccessful uploads
+                showToast("Error uploading file to Firebase Storage")
+            }
     }
 }
