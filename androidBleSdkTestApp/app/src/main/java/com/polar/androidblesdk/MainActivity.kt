@@ -91,21 +91,6 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.TimeSource
 import kotlin.time.measureTime
 
-//import com.google.android.gms.auth.api.signin.GoogleSignIn
-//import com.google.android.gms.auth.api.signin.GoogleSignInClient
-//import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-//import com.google.android.gms.common.api.Scope
-//import com.google.android.gms.drive.Drive
-//import com.google.android.gms.drive.DriveClient
-//import com.google.android.gms.drive.DriveContents
-//import com.google.android.gms.drive.DriveResourceClient
-//import com.google.android.gms.drive.MetadataChangeSet
-//import com.google.android.gms.drive.DriveScopes
-//import android.content.Intent
-//import java.io.FileInputStream
-
-
-
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
@@ -181,30 +166,13 @@ class MainActivity : AppCompatActivity() {
 //    val googleSignInClient = GoogleSignIn.getClient(this, googleSignInOptions)
 
 
-//    private lateinit var broadcastButton: Button
     private lateinit var connectButton: Button
-//    private lateinit var autoConnectButton: Button
-//    private lateinit var scanButton: Button
-//    private lateinit var hrButton: Button
-    //    private lateinit var ecgButton: Button
-//    private lateinit var accButton: Button
-//    private lateinit var gyrButton: Button
-//    private lateinit var magButton: Button
-//    private lateinit var ppgButton: Button
-//    private lateinit var ppgValue: TextView
-//    private lateinit var gpsValue: TextView
-//    private lateinit var accValue: TextView
-//    private lateinit var ppiButton: Button
-    //    private lateinit var listExercisesButton: Button
-    //    private lateinit var setTimeButton: Button
-//    private lateinit var toggleSdkModeButton: Button
 
     //Verity Sense offline recording use
     private lateinit var ofaButton: Button
     private lateinit var promptID: Button
     private lateinit var uploadButton: Button
     private lateinit var wakeLock: PowerManager.WakeLock
-//    private lateinit var toolsButton: Button
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -543,32 +511,13 @@ class MainActivity : AppCompatActivity() {
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::MyWakelockTag")
         acquireWakeLock()
 
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED){
-//            startLocationUpdates()
-//        }
-//        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-//            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), PERMISSION_REQUEST_CODE)
-//        }
-
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         Log.d(TAG, "version: " + PolarBleApiDefaultImpl.versionInfo())
         ofaButton = findViewById(R.id.one_for_all_button)
         promptID = findViewById(R.id.prompt_ID_button)
         deviceId = getData(this, "currentID", "unknown")
         uploadButton = findViewById(R.id.upload_button)
-//        toolsButton = findViewById(R.id.tools_button)
-//        isLocationServiceRunning = false
-//        broadcastButton = findViewById(R.id.broadcast_button)
         connectButton = findViewById(R.id.connect_button)
-//        autoConnectButton = findViewById(R.id.auto_connect_button)
-//        scanButton = findViewById(R.id.scan_button)
-//        accButton = findViewById(R.id.acc_button)
-//        ppgButton = findViewById(R.id.ohr_ppg_button)
-//        ppgValue = findViewById(R.id.ppg_value)
-//        gpsValue = findViewById(R.id.gps_value)
-//        accValue = findViewById(R.id.acc_value)
-//        toggleSdkModeButton = findViewById(R.id.toggle_SDK_mode)
-
         //Verity Sense recording buttons
 
         api.setPolarFilter(false)
@@ -631,61 +580,6 @@ class MainActivity : AppCompatActivity() {
                 // deprecated
             }
         })
-
-//        val listView: ListView = findViewById(R.id.devices_list)
-//        list_adapter = ArrayAdapter(this,
-//            R.layout.list_item,
-//            R.id.text_item,
-//            items
-//        )
-//        val cus_adapter = CustomAdapter(this, items) { position -> onButtonClick(position) }
-//        listView.adapter = cus_adapter
-
-//        toolsButton.setOnClickListener{
-//            val dialog = AlertDialog.Builder(this)
-//                .setTitle("Choose an option:")
-//                .setNegativeButton("Upload a specific date") { dialog, which ->
-//                    val input = EditText(this)
-//                    val dateDialog = AlertDialog.Builder(this@MainActivity)
-//                        .setTitle("Enter the date you want to upload in this format: YYYY-MM-DD")
-//                        .setView(input)
-//                        .setPositiveButton("OK") { dateDialog, which ->
-//                            selectedDate = input.text.toString()
-//                            isFileRead = false
-//                            val gso = GoogleSignInOptions
-//                                .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-//                                .requestEmail()
-//                                .build()
-//
-//                            googleSignInClient = GoogleSignIn.getClient(this@MainActivity, gso)
-//
-//                            val signInIntent = googleSignInClient?.signInIntent
-//                            specLauncher.launch(signInIntent)
-//                        }
-//                        .setNegativeButton("Cancel") { dateDialog, which ->
-//                            dateDialog.cancel()
-//                        }
-//                        .create()
-//                    dateDialog.show()
-//                }
-//                .setPositiveButton("Delete all data") { dialog, which ->
-//                    val ensureDialog = AlertDialog.Builder(this)
-//                        .setTitle("Are you sure?:")
-//                        .setPositiveButton("Yes, I want to DELETE all data.") { ensureDialog, which ->
-//                            deleteAllDataForDevice()
-//                        }
-//                        .setNegativeButton("No, I want to KEEP the data.") { ensureDialog, which ->
-//                            ensureDialog.cancel()
-//                        }
-//                        .create()
-//                    ensureDialog.show()
-//                }
-//                .setNeutralButton("Cancel") { dialog, which ->
-//                    dialog.cancel()
-//                }
-//                .create()
-//            dialog.show()
-//        }
 
         promptID.setOnClickListener {
             val input = EditText(this)
@@ -768,25 +662,6 @@ class MainActivity : AppCompatActivity() {
             launcher.launch(signInIntent)
         }
 
-//        broadcastButton.setOnClickListener {
-//            if (!this::broadcastDisposable.isInitialized || broadcastDisposable.isDisposed) {
-//                toggleButtonDown(broadcastButton, R.string.listening_broadcast)
-//                broadcastDisposable = api.startListenForPolarHrBroadcasts(null)
-//                    .subscribe(
-//                        { polarBroadcastData: PolarHrBroadcastData ->
-//                            Log.d(TAG, "HR BROADCAST ${polarBroadcastData.polarDeviceInfo.deviceId} HR: ${polarBroadcastData.hr} batt: ${polarBroadcastData.batteryStatus}")
-//                        },
-//                        { error: Throwable ->
-//                            toggleButtonUp(broadcastButton, R.string.listen_broadcast)
-//                            Log.e(TAG, "Broadcast listener failed. Reason $error")
-//                        },
-//                        { Log.d(TAG, "complete") }
-//                    )
-//            } else {
-//                toggleButtonUp(broadcastButton, R.string.listen_broadcast)
-//                broadcastDisposable.dispose()
-//            }
-//        }
         connectButton.text = getString(R.string.connect_to_device, deviceId)
         connectButton.setOnClickListener {
             try {
@@ -805,51 +680,6 @@ class MainActivity : AppCompatActivity() {
                 showToast("Failed to $attempt. Please contact a researcher to support.")
             }
         }
-
-//        autoConnectButton.setOnClickListener {
-//            if (autoConnectDisposable != null) {
-//                autoConnectDisposable?.dispose()
-//            }
-//            autoConnectDisposable = api.autoConnectToDevice(-60, "180D", null)
-//                .subscribe(
-//                    { Log.d(TAG, "auto connect search complete") },
-//                    { throwable: Throwable -> Log.e(TAG, "" + throwable.toString()) }
-//                )
-//        }
-
-//        scanButton.setOnClickListener {
-//            val isDisposed = scanDisposable?.isDisposed ?: true
-//            if (isDisposed) {
-//                toggleButtonDown(scanButton, R.string.scanning_devices)
-//                scanDisposable = api.searchForDevice()
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(
-//                        { polarDeviceInfo: PolarDeviceInfo ->
-//                            Log.d(TAG, "polar device found id: " + polarDeviceInfo.deviceId + " address: " + polarDeviceInfo.address + " rssi: " + polarDeviceInfo.rssi + " name: " + polarDeviceInfo.name + " isConnectable: " + polarDeviceInfo.isConnectable)
-//                            if (polarDeviceInfo.deviceId != deviceId) {
-//                                deviceId = polarDeviceInfo.deviceId
-//                                promptID.text = deviceId
-//
-//                                connectButton.text = getString(R.string.connect_to_device, deviceId)
-//                                items.add(deviceId)
-//                                cus_adapter.notifyDataSetChanged()
-//                                saveData(this, "currentID", deviceId)
-//                            }
-//                        },
-//                        { error: Throwable ->
-//                            toggleButtonUp(scanButton, "Scan devices")
-//                            Log.e(TAG, "Device scan failed. Reason $error")
-//                        },
-//                        {
-//                            toggleButtonUp(scanButton, "Scan devices")
-//                            Log.d(TAG, "complete")
-//                        }
-//                    )
-//            } else {
-//                toggleButtonUp(scanButton, "Scan devices")
-//                scanDisposable?.dispose()
-//            }
-//        }
 
         ofaButton.setOnClickListener{
             val mainScope = MainScope()
@@ -963,12 +793,6 @@ class MainActivity : AppCompatActivity() {
                                         //                                    Log.d(uploading.toString(), "record GPS status")
                                         if (ofaButtonUp == false) {
                                             for (data in polarPpgData.samples) {
-                                                //                                        runOnUiThread {
-                                                //                                            ppgValue.text =
-                                                //                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
-                                                //                                        }
-
-                                                //                                            polarTimestamp = data.timeStamp.toString()
                                                 var ppgFileName =
                                                     "PPG_${deviceId}_${getCurrentDate()}.txt"
 //                                                var unixTimestamp =
@@ -980,18 +804,6 @@ class MainActivity : AppCompatActivity() {
                                                     ppgFileName,
                                                     ppgLine
                                                 )
-                                                // we might want to normalize the ppg values
-                                                //                                        var hashedPPG = hashMapOf(
-                                                //                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-                                                //                                            "ppg0" to data.channelSamples[0],
-                                                //                                            "ppg1" to data.channelSamples[1],
-                                                //                                            "ppg2" to data.channelSamples[2],
-                                                //                                            "timeStamp" to data.timeStamp,
-                                                //                                        )
-                                                //                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
-                                                //                                        ppgCollection.document(polarTimestamp)
-                                                //                                            .set(hashedPPG)
-                                                //                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
                                             }
                                         }
                                     }
@@ -1013,162 +825,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-//        accButton.setOnClickListener {
-//            val isDisposed = accDisposable?.isDisposed ?: true
-//            if (isDisposed) {
-//                toggleButtonDown(accButton, R.string.stop_acc_stream)
-//                accDisposable = requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.ACC)
-//                    .flatMap { settings: PolarSensorSetting ->
-//                        api.startAccStreaming(deviceId, settings)
-//                    }
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(
-//                        { polarAccelerometerData: PolarAccelerometerData ->
-//                            for (data in polarAccelerometerData.samples) {
-//                                accValue.text =
-//                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
-//
-//                                polarTimestamp = data.timeStamp.toString()
-//
-//                                if (uploading) {
-//                                    var hashedACC = hashMapOf(
-//                                        "x" to data.x,
-//                                        "y" to data.y,
-//                                        "z" to data.z,
-//                                        "timeStamp" to data.timeStamp,
-//                                    )
-//                                    verifyStoragePermissions(this)
-//                                    var accFileName = "ACC.txt"
-//                                    var line = "$polarTimestamp,${data.x},${data.y},${data.z}"
-//                                    createOrAppendFileInExternalStorage(accFileName, line)
-//
-//                                var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
-//                                accCollection.document(polarTimestamp)
-//                                    .set(hashedACC)
-//                                    //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
-//                                    .addOnFailureListener { e ->
-//                                        Log.w(
-//                                            TAG,
-//                                            "Error adding document",
-//                                            e
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                        },
-//                        { error: Throwable ->
-//                            toggleButtonUp(accButton, R.string.start_acc_stream)
-//                            Log.e(TAG, "ACC stream failed. Reason $error")
-//                        },
-//                        {
-//                            showToast("ACC stream complete")
-//                            Log.d(TAG, "ACC stream complete")
-//                        }
-//                    )
-//            } else {
-//                toggleButtonUp(accButton, R.string.start_acc_stream)
-//                // NOTE dispose will stop streaming if it is "running"
-//                accDisposable?.dispose()
-//            }
-//        }
-//
-//        ppgButton.setOnClickListener {
-//            val isDisposed = ppgDisposable?.isDisposed ?: true
-//            if (isDisposed) {
-//                toggleButtonDown(ppgButton, R.string.stop_ppg_stream)
-//                ppgDisposable =
-//                    requestStreamSettings(deviceId, PolarBleApi.PolarDeviceDataType.PPG)
-//                        .flatMap { settings: PolarSensorSetting ->
-//                            api.startPpgStreaming(deviceId, settings)
-//                        }
-//                        .subscribe(
-//                            { polarPpgData: PolarPpgData ->
-//                                if (polarPpgData.type == PolarPpgData.PpgDataType.PPG3_AMBIENT1) {
-//                                    uploading = true
-//                                    Log.d(uploading.toString(), "record GPS status")
-//                                    for (data in polarPpgData.samples) {
-//                                        runOnUiThread {
-//                                            ppgValue.text =
-//                                                "average: ${(data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3}\nppg0: ${data.channelSamples[0]}\nppg1: ${data.channelSamples[1]}\nppg2: ${data.channelSamples[2]}\nambient: ${data.channelSamples[3]}\ntimeStamp: ${data.timeStamp}"
-//                                        }
-//
-//                                        polarTimestamp = data.timeStamp.toString()
-//                                        // we might want to normalize the ppg values
-//                                        var hashedPPG = hashMapOf(
-//                                            "ave" to (data.channelSamples[0] + data.channelSamples[1] + data.channelSamples[2]) / 3,
-//                                            "ppg0" to data.channelSamples[0],
-//                                            "ppg1" to data.channelSamples[1],
-//                                            "ppg2" to data.channelSamples[2],
-//                                            "timeStamp" to data.timeStamp,
-//                                        )
-//                                        var ppgCollection = db.collection(deviceId).document("PPG").collection("timestamp")
-//                                        ppgCollection.document(polarTimestamp)
-//                                            .set(hashedPPG)
-//                                            .addOnFailureListener { Log.d(TAG, "ppg not collected") }
-//                                    }
-//                                }
-//                            },
-//                            { error: Throwable ->
-//                                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-//                                Log.e(TAG, "PPG stream failed. Reason $error")
-//                            },
-//                            { Log.d(TAG, "PPG stream complete") }
-//                        )
-//            } else {
-//                toggleButtonUp(ppgButton, R.string.start_ppg_stream)
-//                if (uploading) {
-//                    uploading = false
-//                }
-//                Log.d(uploading.toString(), "upload status")
-//                // NOTE dispose will stop streaming if it is "running"
-//                ppgDisposable?.dispose()
-//            }
-//        }
-//
-//        toggleSdkModeButton.setOnClickListener {
-//            toggleSdkModeButton.isEnabled = false
-//            if (!sdkModeEnabledStatus) {
-//                sdkModeEnableDisposable = api.enableSDKMode(deviceId)
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(
-//                        {
-//                            Log.d(TAG, "SDK mode enabled")
-//                            // at this point dispose all existing streams. SDK mode enable command
-//                            // stops all the streams but client is not informed. This is workaround
-//                            // for the bug.
-//                            disposeAllStreams()
-//                            toggleSdkModeButton.isEnabled = true
-//                            sdkModeEnabledStatus = true
-//                            toggleButtonDown(toggleSdkModeButton, R.string.disable_sdk_mode)
-//                        },
-//                        { error ->
-//                            toggleSdkModeButton.isEnabled = true
-//                            val errorString = "SDK mode enable failed: $error"
-//                            showToast(errorString)
-//                            Log.e(TAG, errorString)
-//                        }
-//                    )
-//            } else {
-//                sdkModeEnableDisposable = api.disableSDKMode(deviceId)
-//                    .observeOn(AndroidSchedulers.mainThread())
-//                    .subscribe(
-//                        {
-//                            Log.d(TAG, "SDK mode disabled")
-//                            toggleSdkModeButton.isEnabled = true
-//                            sdkModeEnabledStatus = false
-//                            toggleButtonUp(toggleSdkModeButton, R.string.enable_sdk_mode)
-//                        },
-//                        { error ->
-//                            toggleSdkModeButton.isEnabled = true
-//                            val errorString = "SDK mode disable failed: $error"
-//                            showToast(errorString)
-//                            Log.e(TAG, errorString)
-//                        }
-//                    )
-//            }
-//        }
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -1374,30 +1030,6 @@ class MainActivity : AppCompatActivity() {
         }
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
-//
-//    private fun updateUI(location: Location){
-////        gpsValue.text = "Latitude: ${location.latitude}\nLongitude: ${location.longitude}"
-//        // store the value here and keep updating it
-//        // upload it to firebase when PPG button is clicked
-//        longitude = (location.longitude).toString()
-//        latitude = (location.latitude).toString()
-//
-//        if (ofaButtonUp == false){
-////        var hashedLocation = hashMapOf(
-////            "lat" to location.latitude,
-////            "lon" to location.longitude
-////        )
-//        var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-//        var unixTimestamp = Instant.now().toEpochMilli().toString()
-//        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};"
-//        createOrAppendFileInExternalStorage(gpsFileName, gpsLine)
-//
-////        var gpsCollection = db.collection(deviceId).document("GPS").collection("timestamp")
-////        gpsCollection.document(polarTimestamp)
-////            .set(hashedLocation)
-////            .addOnFailureListener { e -> Log.w(TAG, "Error adding document", e) }
-//        }
-//    }
 
     private fun startLocationService() {
         val serviceIntent = Intent(this, LocationService::class.java).apply {
@@ -1411,13 +1043,6 @@ class MainActivity : AppCompatActivity() {
         stopIntent.action = LocationService.ACTION_STOP
         ContextCompat.startForegroundService(this, stopIntent)
     }
-
-//    private fun stopLocationService() {
-//        val intent = Intent(this, LocationService::class.java)
-//        ContextCompat.startForegroundService(this, intent)
-//        stopService(intent)
-//        isLocationServiceRunning = false
-//    }
 
     private fun toggleButtonDown(button: Button, text: String? = null) {
         toggleButton(button, true, text)
