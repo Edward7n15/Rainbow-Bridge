@@ -15,6 +15,7 @@ import android.location.Location
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Environment
 import android.os.PowerManager
 import android.provider.MediaStore
@@ -649,7 +650,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         uploadButton.setOnClickListener{
-//            uploadButtonUp = false
+            uploadButtonUp = false
 //            // resumable upload PPG.txt to google drive
 //            isFileRead = false
 //            val gso = GoogleSignInOptions
@@ -661,9 +662,8 @@ class MainActivity : AppCompatActivity() {
 //
 //            val signInIntent = googleSignInClient?.signInIntent
 //            launcher.launch(signInIntent)
-            showToast("Setting up Google Drive...")
-            uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
-
+                showToast("Setting up Firebase...")
+                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.specialColor))
             val fileNames = listOf(
                 "PPG_${deviceId}_${getCurrentDate()}.zip",
                 "ACC_${deviceId}_${getCurrentDate()}.zip",
@@ -689,8 +689,21 @@ class MainActivity : AppCompatActivity() {
                 if (allGood){
                     showToast("Success! Thank you for uploading data today!")
                 }
-                uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
             }
+
+            val timer = object : CountDownTimer(1000, 100) {
+                override fun onTick(millisUntilFinished: Long) {
+                    // Update the UI every tick
+//                    timerText.text = "Seconds remaining: ${millisUntilFinished / 1000}"
+                }
+
+                override fun onFinish() {
+                    // Code to execute when the timer finishes
+                    uploadButton.setBackgroundColor(ContextCompat.getColor(this@MainActivity, R.color.primaryColor))
+                }
+            }
+
+            timer.start() // Start the timer
         }
 
         connectButton.text = getString(R.string.connect_to_device, deviceId)
@@ -1393,5 +1406,7 @@ class MainActivity : AppCompatActivity() {
                 // Handle unsuccessful uploads
                 showToast("Error uploading file to Firebase Storage")
             }
+
+//        uploadButton.setBackgroundColor(ContextCompat.getColor(this, R.color.primaryColor))
     }
 }
