@@ -16,12 +16,18 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.*
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.Date
 import java.util.Locale
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlin.time.ExperimentalTime
+import kotlin.time.TimeSource
 
 class LocationService : Service() {
 
@@ -107,8 +113,9 @@ class LocationService : Service() {
         val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
         var gpsFileName = "GPS_${deviceId}_${getCurrentDate()}.txt"
-        var unixTimestamp = Instant.now().toEpochMilli().toString()
-        var gpsLine = "${getCurrentTimestamp()};;${unixTimestamp};${location.latitude};${location.longitude};\n"
+//        var unixTimestamp = Instant.now().toEpochMilli().toString()
+        var unixTimestamp = getNano()
+        var gpsLine = "${unixTimestamp};${location.latitude};${location.longitude};\n"
 
         val logFile = File(downloadsDir, gpsFileName)
 
@@ -119,6 +126,14 @@ class LocationService : Service() {
         } catch (e: IOException) {
             Log.e("LocationService", "Error writing to file", e)
         }
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun getNano(): String{
+        var nanoTime = TimeSource.Monotonic.markNow().elapsedNow().inWholeNanoseconds
+        var milli = Instant.now().toEpochMilli()
+        var rlt = milli * 1_000_000 + nanoTime
+        return rlt.toString()
     }
 
     private fun startLocationUpdates() {
@@ -150,6 +165,23 @@ class LocationService : Service() {
     fun getCurrentDate(): String {
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         return dateFormat.format(Date())
+    }
+
+    fun compressFile(fileName: String) {
+        val downloadsDirectory = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        val inputFile = File(downloadsDirectory, fileName)
+        val outputFile = File(downloadsDirectory, "$fileName.zip")
+
+        ZipOutputStream(FileOutputStream(outputFile)).use { zos ->
+            FileInputStream(inputFile).use { fis ->
+                val zipEntry = ZipEntry(inputFile.name)
+                zos.putNextEntry(zipEntry)
+                fis.copyTo(zos, bufferSize = 1024)
+                zos.closeEntry()
+            }
+        }
+
+        println("File compressed to ${outputFile.absolutePath}")
     }
 
     companion object {
