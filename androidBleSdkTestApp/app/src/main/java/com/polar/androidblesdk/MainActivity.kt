@@ -686,12 +686,12 @@ class MainActivity : AppCompatActivity() {
                         allGood = false
                     }
                 }
-                if (allGood){
-                    showToast("Success! Thank you for uploading data today!")
+                if (!allGood){
+                    showToast("Seems something went wrong...")
                 }
             }
 
-            val timer = object : CountDownTimer(1000, 100) {
+            val timer = object : CountDownTimer(5000, 500) {
                 override fun onTick(millisUntilFinished: Long) {
                     // Update the UI every tick
 //                    timerText.text = "Seconds remaining: ${millisUntilFinished / 1000}"
@@ -769,19 +769,7 @@ class MainActivity : AppCompatActivity() {
                             .subscribe(
                                 { polarAccelerometerData: PolarAccelerometerData ->
                                     for (data in polarAccelerometerData.samples) {
-                                        //                                accValue.text =
-                                        //                                    "ACC    x: ${data.x} y: ${data.y} z: ${data.z}"
-
-                                        //                                polarTimestamp = data.timeStamp.toString()
-
                                         if (ofaButtonUp == false) {
-                                            //                                    var hashedACC = hashMapOf(
-                                            //                                        "x" to data.x,
-                                            //                                        "y" to data.y,
-                                            //                                        "z" to data.z,
-                                            //                                        "timeStamp" to data.timeStamp,
-                                            //                                    )
-//                                            verifyStoragePermissions(this)
                                             var accFileName =
                                                 "ACC_${deviceId}_${getCurrentDate()}.txt"
                                             var unixTimestamp =
@@ -790,18 +778,6 @@ class MainActivity : AppCompatActivity() {
                                             var accLine =
                                                 "${unixTimestamp};${data.x};${data.y};${data.z};"
                                             createOrAppendFileInExternalStorage(accFileName, accLine)
-
-                                            //                                    var accCollection = db.collection(deviceId).document("ACC").collection("timestamp")
-                                            //                                    accCollection.document(polarTimestamp)
-                                            //                                        .set(hashedACC)
-                                            //                                        //                                        .addOnSuccessListener { Log.d(TAG, "acc collected") }
-                                            //                                        .addOnFailureListener { e ->
-                                            //                                            Log.w(
-                                            //                                                TAG,
-                                            //                                                "Error adding document",
-                                            //                                                e
-                                            //                                            )
-                                            //                                        }
                                         }
                                     }
                                 },
@@ -1400,7 +1376,7 @@ class MainActivity : AppCompatActivity() {
         fileRef.putFile(fileUri)
             .addOnSuccessListener {
                 // Handle successful uploads
-                showToast("File uploaded successfully to Firebase Storage")
+                showToast("${fileName} uploaded successfully to Firebase Storage")
             }
             .addOnFailureListener {
                 // Handle unsuccessful uploads
